@@ -165,7 +165,8 @@ void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
 }
 
 //==============================================================================
-void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
+void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+{
     int bufferOffset = 0;
     
     for (const auto metadata : midiMessages) {
@@ -196,7 +197,8 @@ void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, j
     midiMessages.clear();
 }
 
-void JX11AudioProcessor::handleMIDI(uint8_t data0, uint8_t data1, uint8_t data2) {
+void JX11AudioProcessor::handleMIDI(uint8_t data0, uint8_t data1, uint8_t data2)
+{
     /* Terminal output test
     char s[16];
     snprintf(s, 16, "%02hhX %02hhX %02hhX", data0, data1, data2);
@@ -208,8 +210,21 @@ void JX11AudioProcessor::handleMIDI(uint8_t data0, uint8_t data1, uint8_t data2)
 }
 
 void JX11AudioProcessor::render(
-                                juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset) {
+                                juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset) 
+{
+//    Array of 2 float pointers for stereo
+    float* outputBuffers[2] = {nullptr, nullptr};
     
+//    Get a pointer to the audio data inside (getWritePointer)
+//    AudioBuffer is split up due to MIDI time stamps
+//    bufferOffset is the actual start of the buffer
+    outputBuffers[0] = buffer.getWritePointer(0) + bufferOffset;
+    
+    if (getTotalNumInputChannels() > 1) {
+        outputBuffers[1] = buffer.getWritePointer(1) + bufferOffset;
+    }
+    
+    synth.render(outputBuffers, sampleCount);
 }
 
 //==============================================================================

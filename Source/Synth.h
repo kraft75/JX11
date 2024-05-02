@@ -14,6 +14,7 @@
 
 #include <JuceHeader.h>
 #include "Voice.h"
+#include "NoiseGenerator.h"
 
 class Synth {
     float sampleRate;
@@ -24,6 +25,8 @@ class Synth {
 //    Multiple voices for each note playing.
 //    At the momemt monophonic
     Voice voice;
+    
+    NoiseGenerator noiseGen;
     
 public:
     Synth();
@@ -39,7 +42,7 @@ public:
 //    reset state
     void reset();
     
-//    render current block of audio
+//    render current block of audio. Making sound.
     void render(float** outputBuffers, int sampleCount);
     
 //    Handling MIDI messages

@@ -12,35 +12,63 @@
 
 Synth::Synth() : sampleRate(44100.0f) {}
 //==============================================================================
-void Synth::allocateResources(double sampleRate_, int samplesPerBlock) {
+void Synth::allocateResources(double sampleRate_, int samplesPerBlock)
+{
     sampleRate = static_cast<float>(sampleRate_);
 }
 //==============================================================================
 
-void Synth::deallocateResources() {
+void Synth::deallocateResources() 
+{
 // do nothing
 }
 //==============================================================================
 
-void Synth::reset() {
+void Synth::reset()
+{
 //    On initialization of the plug-in
-//       reset Voice instance
+//       reset Voice and Generator instance
     voice.reset();
+    noiseGen.reset();
 }
 //==============================================================================
 
-void Synth::render(float** outputBuffers, int sampleCount) {
-    // do nothing yet
+void Synth::render(float** outputBuffers, int sampleCount) 
+{
+    float* outputBufferLeft = outputBuffers[0];
+    float* outputBufferRight = outputBuffers[1];
+    
+//    Loop thru the samples. If there were MIDI messages
+//    this will be less than the total number of samples in the block.
+    for (int sample = 0; sample < sampleCount; ++sample) {
+//        Next output from noise generator
+        float noise = noiseGen.nextValue();
+        
+        float output = 0.0f;
+//        Check if key is pressed
+        if (voice.note > 0) {
+//            Multiply with the velocity and 0.5 for 6dB gain reduction
+            output = noise * (voice.velocity / 127.0f) * 0.5f;
+        }
+        
+//        Write output values into the audio buffer
+        outputBufferLeft[sample] = output;
+        if (outputBufferRight != nullptr) {
+            outputBufferRight[sample] = output;
+        }
+    }
 }
 //==============================================================================
 
-void Synth::noteON(int note, int velocity) {
+void Synth::noteON(int note, int velocity)
+{
 //    Register recently played note and velocity
     voice.note = note;
     voice.velocity = velocity;
 }
 
-void Synth::noteOff(int note) {
+void Synth::noteOff(int note)
+{
 //    Only if the released key is for the same note
     if (voice.note == note) {
         voice.note = 0;
@@ -48,7 +76,8 @@ void Synth::noteOff(int note) {
     }
 }
 //==============================================================================
-void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2) {
+void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
+{
 //    Consider only the four highest bits (command)
     switch (data0& 0xF0) {
 //            Note off
