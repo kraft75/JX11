@@ -99,6 +99,7 @@ void JX11AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 //    Synth instance reacts to changes
 //    In JX11 they don't allocate, but still worth setting up
     synth.allocateResources(sampleRate, samplesPerBlock);
+    reset();
 }
 
 void JX11AudioProcessor::releaseResources()
@@ -107,6 +108,12 @@ void JX11AudioProcessor::releaseResources()
     // spare memory, etc.
     
     synth.deallocateResources();
+}
+
+void JX11AudioProcessor::reset()
+{
+//    Call synth reset() from main class
+    synth.reset();
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -190,9 +197,14 @@ void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, j
 }
 
 void JX11AudioProcessor::handleMIDI(uint8_t data0, uint8_t data1, uint8_t data2) {
+    /* Terminal output test
     char s[16];
     snprintf(s, 16, "%02hhX %02hhX %02hhX", data0, data1, data2);
     DBG(s);
+     */
+    
+//    Output a sounf by pressing MIDI keyboard
+    synth.midiMessage(data0, data1, data2);
 }
 
 void JX11AudioProcessor::render(

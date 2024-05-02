@@ -17,6 +17,10 @@
 
 class Synth {
     float sampleRate;
+    
+    void noteON(int, int);
+    void noteOff(int);
+    
 //    Multiple voices for each note playing.
 //    At the momemt monophonic
     Voice voice;

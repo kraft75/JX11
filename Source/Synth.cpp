@@ -23,7 +23,9 @@ void Synth::deallocateResources() {
 //==============================================================================
 
 void Synth::reset() {
-    // do nothing yet
+//    On initialization of the plug-in
+//       reset Voice instance
+    voice.reset();
 }
 //==============================================================================
 
@@ -32,7 +34,40 @@ void Synth::render(float** outputBuffers, int sampleCount) {
 }
 //==============================================================================
 
+void Synth::noteON(int note, int velocity) {
+//    Register recently played note and velocity
+    voice.note = note;
+    voice.velocity = velocity;
+}
+
+void Synth::noteOff(int note) {
+//    Only if the released key is for the same note
+    if (voice.note == note) {
+        voice.note = 0;
+        voice.velocity = 0;
+    }
+}
+//==============================================================================
 void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2) {
-    // do nothing yet
+//    Consider only the four highest bits (command)
+    switch (data0& 0xF0) {
+//            Note off
+        case 0x80:
+            noteOff(data1& 0x7F);
+            break;
+//            Note on
+        case 0x90:
+            uint8_t note = data1& 0x7F;
+            uint8_t velo = data2& 0x7F;
+            
+            if (velo > 0) {
+                noteON(note, velo);
+            } else {
+                noteOff(note);
+            }
+            break;
+            
+        
+    }
 }
 
