@@ -15,16 +15,25 @@
 
 #pragma once
 
+#include "Oscillator.h"
+
 struct Voice {
 //    Register the note and velocity
 //    of the most recently pressed key
     int note;
-    int velocity;
+    
+//    Sine oscillator
+    Oscillator osc;
     
 //    On initialization of the plug-in
 //    reset note and velocity
     void reset() {
         note = 0;
-        velocity = 0;
+        osc.reset();
+    }
+    
+//    Get the next sample from the oscillator
+    float render() {
+        return osc.nextSample();
     }
 };

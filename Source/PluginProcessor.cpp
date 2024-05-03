@@ -205,7 +205,7 @@ void JX11AudioProcessor::handleMIDI(uint8_t data0, uint8_t data1, uint8_t data2)
     DBG(s);
      */
     
-//    Output a sounf by pressing MIDI keyboard
+//    Outputs a sound by pressing MIDI keyboard
     synth.midiMessage(data0, data1, data2);
 }
 

@@ -42,13 +42,13 @@ void Synth::render(float** outputBuffers, int sampleCount)
 //    this will be less than the total number of samples in the block.
     for (int sample = 0; sample < sampleCount; ++sample) {
 //        Next output from noise generator
-        float noise = noiseGen.nextValue();
+//        float noise = noiseGen.nextValue();
         
         float output = 0.0f;
 //        Check if key is pressed
         if (voice.note > 0) {
-//            Multiply with the velocity and 0.5 for 6dB gain reduction
-            output = noise * (voice.velocity / 127.0f) * 0.5f;
+//            Audio data
+            output = voice.render();
         }
         
 //        Write output values into the audio buffer
@@ -69,7 +69,10 @@ void Synth::noteON(int note, int velocity)
 {
 //    Register recently played note and velocity
     voice.note = note;
-    voice.velocity = velocity;
+    voice.osc.amplitude = (velocity / 127.0f) * 0.5f;
+    voice.osc.freq = 261.63f;
+    voice.osc.sampleRate = sampleRate;
+    voice.osc.phaseOffset = 0.0f;
 }
 
 void Synth::noteOff(int note)
@@ -77,7 +80,6 @@ void Synth::noteOff(int note)
 //    Only if the released key is for the same note
     if (voice.note == note) {
         voice.note = 0;
-        voice.velocity = 0;
     }
 }
 //==============================================================================
