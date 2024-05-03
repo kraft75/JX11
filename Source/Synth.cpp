@@ -56,6 +56,11 @@ void Synth::render(float** outputBuffers, int sampleCount)
         if (outputBufferRight != nullptr) {
             outputBufferRight[sample] = output;
         }
+        
+//        Mutes the audio for values beyond -2.0f and 2.0f
+        earProtect.protectYourEars(outputBufferLeft, sampleCount);
+        earProtect.protectYourEars(outputBufferRight, sampleCount);
+
     }
 }
 //==============================================================================

@@ -17,6 +17,7 @@
       <FILE id="TnSLfj" name="Synth.cpp" compile="1" resource="0" file="Source/Synth.cpp"/>
       <FILE id="rTaJKY" name="Synth.h" compile="0" resource="0" file="Source/Synth.h"/>
       <FILE id="kA0ZJh" name="Voice.h" compile="0" resource="0" file="Source/Voice.h"/>
+      <FILE id="mROn65" name="Utils.h" compile="0" resource="0" file="Source/Utils.h"/>
       <FILE id="s1ILAb" name="NoiseGenerator.h" compile="0" resource="0"
             file="Source/NoiseGenerator.h"/>
     </GROUP>
