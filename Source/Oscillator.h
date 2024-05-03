@@ -26,7 +26,8 @@ public:
     
     void reset()
     {
-        phase = 0;
+//        Cosine wave
+        phase = 0.0f;
     }
     
 //    Outputs audio data (sine tone)

@@ -71,7 +71,19 @@ void Synth::noteON(int note, int velocity)
     voice.note = note;
     
     voice.osc.amplitude = (velocity / 127.0f) * 0.5f;
-    float freq = 261.63f;
+    
+    /*  P. 115
+        1: (note − 69) determines the number of semitones this note is up or down from
+        the A with note number 69.
+     
+        2:  calculate 2^(note−69)/12 to get the multiplier.
+     
+        3: Apply this multiplier to frequency 440Hz to get the pitch of the note.
+        
+        
+     */
+    float freq = 440.0f * std::exp2(float(note - 69) / 12.0f);
+    
     voice.osc.inc = freq / sampleRate;
     voice.osc.reset();
 }
