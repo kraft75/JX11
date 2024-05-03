@@ -69,10 +69,11 @@ void Synth::noteON(int note, int velocity)
 {
 //    Register recently played note and velocity
     voice.note = note;
+    
     voice.osc.amplitude = (velocity / 127.0f) * 0.5f;
-    voice.osc.freq = 261.63f;
-    voice.osc.sampleRate = sampleRate;
-    voice.osc.phaseOffset = 0.0f;
+    float freq = 261.63f;
+    voice.osc.inc = freq / sampleRate;
+    voice.osc.reset();
 }
 
 void Synth::noteOff(int note)

@@ -21,23 +21,24 @@ const double TWO_PI = 2 * PI;
 class Oscillator {
 public:
     float amplitude;
-    float freq;
-    float sampleRate;
-    float phaseOffset;
-    int sampleIndex;
+    float inc;
+    float phase;
     
     void reset()
     {
-        sampleIndex = 0;
+        phase = 0;
     }
     
 //    Outputs audio data (sine tone)
     float nextSample()
     {
-        float output = amplitude * std::sin(TWO_PI * sampleIndex * freq / sampleRate + phaseOffset);
-
-        sampleIndex += 1;
-        
-        return output;
+        phase += inc;
+//        It takes sampleRate/freq samples for phase to count from 0 to 1.
+        if (phase >= 1.0f) {
+            phase -= 1.0f;
+        }
+//        Sine needs as an argument an angle in radians
+//        phase shows the current position of sine
+        return amplitude * std::sin(TWO_PI * phase);
     }
 };
