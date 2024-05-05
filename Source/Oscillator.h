@@ -24,21 +24,24 @@ public:
     float inc;
     float phase;
     
-//    Variant digital resonator.
+//    Variant digital resonator for sine.
+    /*
     float sin0;
     float sin1;
     float dsin;
+    */
     
     void reset()
     {
 //        Cosine wave
         phase = 0.0f;
         
-        //    Variant digital resonator.
+        //    Variant digital resonator for sine.
+        /*
         sin0 = amplitude * std::sin(phase * TWO_PI);
         sin1 = amplitude * std::sin((phase - inc) * TWO_PI);
         dsin = 2.0f * std::cos(inc * TWO_PI);
-
+        */
     }
     
 //    Outputs audio data (sine tone)
@@ -54,11 +57,22 @@ public:
 //        phase shows the current position of sine
         return amplitude * std::sin(TWO_PI * phase);
          */
-        
-//            Variant digital resonator.
-//            An alternative that saves computing time by the sine function
+//  ------------------------------------------------------------------------
+//            Variant digital resonator for sine.
+      /*      An alternative that saves computing time by the sine function
         float sinx = dsin * sin0 - sin1; sin1 = sin0;
         sin0 = sinx;
         return sinx;
+        */
+//  ------------------------------------------------------------------------
+
+//        Sawtooth Oscillator
+        phase += inc;
+//        It takes sampleRate/freq samples for phase to count from 0 to 1.
+        if (phase >= 1.0f) {
+            phase -= 1.0f;
+        }
+        
+        return amplitude * (2.0f * phase - 1.0f);
     }
 };
