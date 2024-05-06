@@ -13,6 +13,9 @@
     you’d calculate the full-length sinc function centered on the first peak,
     then calculate another sinc centered on the second peak,
     and add them up
+    
+    Other algorithms on p. 145
+ 
   ==============================================================================
 */
 
@@ -27,11 +30,18 @@ const float PI_OVER_4 = PI / 4;
 class Oscillator {
 //    Keeps track of the sine wave.
     float phase;
+    
 //    Increments the phase. How quick it changes,
     float inc;
+    
+//    phase counts up to phaseMax
     float phaseMax;
     
-//     digital resonator version for more effeciency.
+//    DC Offset. Blob at 0 Hz. The subtraction
+//    creates the sawtooth waveform
+    float dc;
+    
+//     digital resonator version for sine oscillator.
     float sin0;
     float sin1;
     float dsin;
@@ -44,6 +54,7 @@ public:
     {
         phase = 0.0f;
         inc = 0.0f;
+        dc = 0.0f;
         
 //      digital resonator version for more effeciency.
         sin0 = 0.0f;
@@ -75,9 +86,21 @@ public:
 //            between the two impulse peaks expressed in samples.
 //            std::floor fudges the value in order to prevent aliasing
             phaseMax = std::floor(.5f + halfPeriod) - .5f;
+            
+//            Signal’s average value. The average value needs to be divided
+//            by the number of samples.
+            dc = .5f * amplitude / phaseMax;
+            
+//            The sinc function is sin(phase * PI) / (phase * PI).
+//            To avoid the permanent multiplication by PI we set
+//            the unit of the phase, phaseMax and inc with an
+//            multiplication by Pi.
             phaseMax *= PI;
             
+//            Phase increment. Theoretically inc equals PI. Due to
+//            the fudged midpoint it deviates slightly from PI.
             inc = phaseMax / halfPeriod;
+            
 //            after the midpoint the phase counts down to the next peak
             phase = -phase;
             
@@ -119,6 +142,7 @@ public:
 //            digital resonator version for output value
             output = sinp / phase;
         }
-        return output;
+//        Substract the DC-Offset to avoid clicks and pops.
+        return output - dc;
     }
 };

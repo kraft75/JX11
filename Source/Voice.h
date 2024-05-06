@@ -25,15 +25,22 @@ struct Voice {
 //    Sine oscillator
     Oscillator osc;
     
+//    Turning BLIT into sawtooth wave
+    float saw;
+    
 //    On initialization of the plug-in
 //    reset note and velocity
     void reset() {
         note = 0;
         osc.reset();
+        saw = 0.0f;
     }
     
 //    Get the next sample from the oscillator
     float render() {
-        return osc.nextSample();
+        float sample = osc.nextSample();
+//        .997f acts like a low-pass filter preventin an offset
+        saw = saw * .997f + sample;
+        return saw;
     }
 };
