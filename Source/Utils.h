@@ -9,6 +9,9 @@
     Ear protection! It checks if The audio values int the buffer are
     reasonable for the ears. If the value exceeds the threshold the out-
     put will be muted.
+ 
+    Helper function for the constructor in PluginProcessor in order to
+    grab the parameter.
   ==============================================================================
 */
 
@@ -16,6 +19,16 @@
 
 class Utils {
 public:
+//    A shortcut for the class PluginProcessor.
+    template<typename T>
+    static void castParameter(juce::AudioProcessorValueTreeState& apvts,
+                              const juce::ParameterID& id, T& destination)
+    {
+        destination = dynamic_cast<T>(apvts.getParameter(id.getParamID()));
+        jassert(destination);
+    }
+    
+//    Ear protection.
     void protectYourEars(float* buffer, int sampleCount) {
         if (buffer == nullptr) { return; }
         

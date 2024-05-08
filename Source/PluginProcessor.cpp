@@ -8,6 +8,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "Utils.h"
 
 //==============================================================================
 JX11AudioProcessor::JX11AudioProcessor()
@@ -22,6 +23,36 @@ JX11AudioProcessor::JX11AudioProcessor()
                        )
 #endif
 {
+//              Grabs the parameter with the identifier
+//              ParameterID::... from the APVTS and casts it
+//              to juce::AudioParameter....
+    
+    Utils::castParameter(apvts, ParameterID::oscMix, oscMixParam);
+    Utils::castParameter(apvts, ParameterID::oscTune, oscTuneParam);
+    Utils::castParameter(apvts, ParameterID::oscFine, oscFineParam);
+    Utils::castParameter(apvts, ParameterID::glideMode, glideModeParam);
+    Utils::castParameter(apvts, ParameterID::glideRate, glideRateParam);
+    Utils::castParameter(apvts, ParameterID::glideBend, glideBendParam);
+    Utils::castParameter(apvts, ParameterID::filterFreq, filterFreqParam);
+    Utils::castParameter(apvts, ParameterID::filterReso, filterResoParam);
+    Utils::castParameter(apvts, ParameterID::filterEnv, filterEnvParam);
+    Utils::castParameter(apvts, ParameterID::filterLFO, filterLFOParam);
+    Utils::castParameter(apvts, ParameterID::filterVelocity, filterVelocityParam);
+    Utils::castParameter(apvts, ParameterID::filterAttack, filterAttackParam);
+    Utils::castParameter(apvts, ParameterID::filterDecay, filterDecayParam);
+    Utils::castParameter(apvts, ParameterID::filterSustain, filterSustainParam);
+    Utils::castParameter(apvts, ParameterID::filterRelease, filterReleaseParam);
+    Utils::castParameter(apvts, ParameterID::envAttack, envAttackParam);
+    Utils::castParameter(apvts, ParameterID::envDecay, envDecayParam);
+    Utils::castParameter(apvts, ParameterID::envSustain, envSustainParam);
+    Utils::castParameter(apvts, ParameterID::envRelease, envReleaseParam);
+    Utils::castParameter(apvts, ParameterID::lfoRate, lfoRateParam);
+    Utils::castParameter(apvts, ParameterID::vibrato, vibratoParam);
+    Utils::castParameter(apvts, ParameterID::noise, noiseParam);
+    Utils::castParameter(apvts, ParameterID::octave, octaveParam);
+    Utils::castParameter(apvts, ParameterID::tuning, tuningParam);
+    Utils::castParameter(apvts, ParameterID::outputLevel, outputLevelParam);
+    Utils::castParameter(apvts, ParameterID::polyMode, polyModeParam);
 }
 
 JX11AudioProcessor::~JX11AudioProcessor()
@@ -145,6 +176,20 @@ bool JX11AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
+    
+// -------------------------------------------------------------------------------------------------------------------------
+
+    /*    Pick up changes caused by the parameters  */
+    
+//    Map the value from 0%-100% to 0-1:
+    float noiseMix = noiseParam->get() / 100.0f;
+//    Squaring the parameter to become logarithmic. Human hearing.
+    noiseMix *= noiseMix;
+//    The audio rendering happens in class Synth. Times 0.06 sets the
+//    maximum moise level roughly to -24dB for flavoring the sound.
+    synth.noiseMix = noiseMix * 0.06f;
+// -------------------------------------------------------------------------------------------------------------------------
+
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 

@@ -51,4 +51,7 @@ public:
     
 //    Handling MIDI messages
     void midiMessage(uint8_t data0, uint8_t data1, uint8_t data2);
+    
+//    Parameter noise
+    float noiseMix;
 };

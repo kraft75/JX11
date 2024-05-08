@@ -41,14 +41,15 @@ void Synth::render(float** outputBuffers, int sampleCount)
 //    Loop thru the samples. If there were MIDI messages
 //    this will be less than the total number of samples in the block.
     for (int sample = 0; sample < sampleCount; ++sample) {
-//        Next output from noise generator
-//        float noise = noiseGen.nextValue();
+//        Next output from noise generator multiplied by
+//        the parameter noise (noiseMix).
+        float noise = noiseGen.nextValue() * noiseMix;
         
         float output = 0.0f;
-//        Check if key is pressed
+//        Check if key is pressed.
         if (voice.note > 0) {
-//            Audio data
-            output = voice.render();
+//            Audio data with added noise.
+            output = voice.render() + noise;
         }
         
 //        Write output values into the audio buffer
