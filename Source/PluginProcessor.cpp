@@ -321,7 +321,17 @@ void JX11AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
-    std::unique_ptr<<#class Tp#>>(<#unique_ptr<Tp, Dp> &&u#>)
+    
+//    Parse binary data into an xml document
+    std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
+//    Verifying that xml contains the parameter tag
+    if (xml.get() != nullptr && xml->hasTagName(apvts.state.getType())) {
+//        Updating the values of all parameters to the new values. Thread-safe.
+        apvts.replaceState(juce::ValueTree::fromXml(*xml));
+//        Signal processBlock() to call update() again.
+//        Making sure the the values are up-to-date
+        parametersChanged.store(true);
+    }
 }
 
 //==============================================================================
