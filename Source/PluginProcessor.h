@@ -51,7 +51,11 @@ namespace ParameterID {
 //==============================================================================
 /**
 */
-class JX11AudioProcessor  : public juce::AudioProcessor
+class JX11AudioProcessor  : public juce::AudioProcessor,
+                            // Listens to parameter changes.
+                            // Only changes when the value alters.
+                            // It prevents unecessary computing.
+                            private juce::ValueTree::Listener
 {
 public:
     //==============================================================================
@@ -99,6 +103,20 @@ public:
 
 private:
     //==============================================================================
+    
+//    Informs the audio thread (processBlock) about
+//    parameter changes, which are then calculated.
+//    When apvts notifies the listener a parameter
+//    change, the listener set the atomic variable
+//    true.
+    std::atomic<bool> parametersChanged {false};
+    void valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier&) override
+    {
+        parametersChanged.store(true);
+    }
+    
+//    Calculations to the new parameter values.
+    void update();
     
     /*
         For MIDI Messages. Splitting the buffer in smaller pieces (p.81)

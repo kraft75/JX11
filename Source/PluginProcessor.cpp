@@ -53,10 +53,16 @@ JX11AudioProcessor::JX11AudioProcessor()
     Utils::castParameter(apvts, ParameterID::tuning, tuningParam);
     Utils::castParameter(apvts, ParameterID::outputLevel, outputLevelParam);
     Utils::castParameter(apvts, ParameterID::polyMode, polyModeParam);
+    
+//    Add the listener.
+//    Connecting the valueTreePropertyChanged
+//    method to the APVTS.
+    apvts.state.addListener(this);
 }
 
 JX11AudioProcessor::~JX11AudioProcessor()
 {
+    apvts.state.removeListener(this);
 }
 
 //==============================================================================
@@ -124,12 +130,16 @@ void JX11AudioProcessor::changeProgramName (int index, const juce::String& newNa
 //==============================================================================
 void JX11AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
-    
 //    Synth instance reacts to changes
 //    In JX11 they don't allocate, but still worth setting up
     synth.allocateResources(sampleRate, samplesPerBlock);
+    
+//    Forces update() to be executed when processBlock()
+//    is called the first time.
+//    The synth will initialized with the initial state of
+//    the parameters.
+    parametersChanged.store(true);
+    
     reset();
 }
 
@@ -177,26 +187,26 @@ void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
 {
     juce::ScopedNoDenormals noDenormals;
     
-// -------------------------------------------------------------------------------------------------------------------------
-
-    /*    Pick up changes caused by the parameters  */
-    
-//    Map the value from 0%-100% to 0-1:
-    float noiseMix = noiseParam->get() / 100.0f;
-//    Squaring the parameter to become logarithmic. Human hearing.
-    noiseMix *= noiseMix;
-//    The audio rendering happens in class Synth. Times 0.06 sets the
-//    maximum moise level roughly to -24dB for flavoring the sound.
-    synth.noiseMix = noiseMix * 0.06f;
-// -------------------------------------------------------------------------------------------------------------------------
-
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-
+    
+//    Thread-safe check, whether parametersChanged is true.
+    bool expected = true;
+//    if parametersChanged is set by the UI thread to true
+//    it calls the update method and automatically the audio
+//    thread sets parametersChanged to false.
+//    isNonRealtime() deals with adding automation to the
+//    parameters. If the DAW works in offline mode it is faster
+//    than realtime. Preventing loss of parameter changes, we always
+//    update if isNonRealtime() is true. p.175
+    if (isNonRealtime() || parametersChanged.compare_exchange_strong(expected, false)) {
+        update();
+    }
+    
 //    Processing midi messages by timestamps.
 //    Therefore, split them by events.
     splitBufferByEvents(buffer, midiMessages);
@@ -207,6 +217,17 @@ void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
 
         // ..do something to the data...
     }
+}
+
+void JX11AudioProcessor::update()
+{
+//    Map the value from 0%-100% to 0-1. Thread-safe operation.
+        float noiseMix = noiseParam->get() / 100.0f;
+//    Squaring the parameter to become logarithmic. Human hearing.
+        noiseMix *= noiseMix;
+//    The audio rendering happens in class Synth. Times 0.06 sets the
+//    maximum noise level roughly to -24dB for flavoring the sound.
+        synth.noiseMix = noiseMix * 0.06f;
 }
 
 //==============================================================================
@@ -291,12 +312,16 @@ void JX11AudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    copyXmlToBinary(*apvts.copyState().createXml(), destData);
+    
+    DBG(apvts.copyState().toXmlString());
 }
 
 void JX11AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<<#class Tp#>>(<#unique_ptr<Tp, Dp> &&u#>)
 }
 
 //==============================================================================
