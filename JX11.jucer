@@ -20,6 +20,7 @@
       <FILE id="mROn65" name="Utils.h" compile="0" resource="0" file="Source/Utils.h"/>
       <FILE id="s1ILAb" name="NoiseGenerator.h" compile="0" resource="0"
             file="Source/NoiseGenerator.h"/>
+      <FILE id="x760LW" name="Preset.h" compile="0" resource="0" file="Source/Preset.h"/>
       <FILE id="uBm17Q" name="Oscillator.h" compile="0" resource="0" file="Source/Oscillator.h"/>
     </GROUP>
   </MAINGROUP>

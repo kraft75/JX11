@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "Synth.h"
+#include "Preset.h"
 
 //  juce::ParameterID is a parameter identifier that
 //  combines a juce::String object with a version number
@@ -416,5 +417,13 @@ private:
     }
 //    Synth obeject for rendering audio values
     Synth synth;
+ 
+//    Fills up the presets vector.
+    void createPrograms();
+//    Contains all preset objects
+    std::vector<Preset> presets;
+//    Index of the currently selected preset
+    int currentProgram;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JX11AudioProcessor)
 };
