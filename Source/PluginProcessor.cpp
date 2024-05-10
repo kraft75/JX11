@@ -339,6 +339,9 @@ void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
 
 void JX11AudioProcessor::update()
 {
+    
+//    Noise
+//    -------------------------------------------------------------
 //    Map the value from 0%-100% to 0-1. Thread-safe operation.
         float noiseMix = noiseParam->get() / 100.0f;
 //    Squaring the parameter to become logarithmic. Human hearing.
@@ -346,6 +349,26 @@ void JX11AudioProcessor::update()
 //    The audio rendering happens in class Synth. Times 0.06 sets the
 //    maximum noise level roughly to -24dB for flavoring the sound.
         synth.noiseMix = noiseMix * 0.06f;
+    
+//    Envelope / Decay time
+//    -------------------------------------------------------------
+//        Actual sample rate
+    float sampleRate = float(getSampleRate());
+    
+//    EnvDecay param measures in 0-100%. Conversion to 0-1.
+//    This example defies the decay time of 100% at 5 sec.
+    float decayTime = envDecayParam->get() / 100.0f * 5.0f;
+//    In the digital audio domain time is measured in samples.
+//    For instance, a sampleRate of 44,1kHz produces in 1 sec
+//    44100 samples. The decayTime is a multiplier for time
+//    in samples.
+    float decaySamples = sampleRate * decayTime;
+//    The multiplier induces the function exp() to
+//    decrease from 1 ( Level = 100%) to
+//    0 (SILENCE) in a certain amount of time.
+//    Due to the human hearing the lower
+//    threshold is expressed in dB.
+    synth.envDecay = std::exp(std::log(SILENCE) / decaySamples);
 }
 
 //==============================================================================
