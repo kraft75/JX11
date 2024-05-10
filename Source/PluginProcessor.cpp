@@ -58,7 +58,7 @@ JX11AudioProcessor::JX11AudioProcessor()
     createPrograms();
     setCurrentProgram(0);
     
-    //    Add the listener.
+//    Add the listener.
 //    Connecting the valueTreePropertyChanged
 //    method to the APVTS.
     apvts.state.addListener(this);
@@ -161,12 +161,13 @@ void JX11AudioProcessor::setCurrentProgram (int index)
 //    to the appropriate AudioParameterFloat and
 //    AudioParameterChoice objects.
     for (int i = 0; i < NUM_PARAMS; ++i) {
-//        Call setValueNotifyingHost on the audio parameter object,
-//        in order to inform the host application that the parameter
-//        has changed.
-//        Internally JUCE uses the values 0.0 – 1.0.
-//        Calling convertTo0to1 converts the parameter’s
-//        real value into that range.
+        
+//     Call setValueNotifyingHost on the audio parameter object,
+//     in order to inform the host application that the parameter
+//     has changed.
+//     Internally JUCE uses the values 0.0 – 1.0.
+//     Calling convertTo0to1 converts the parameter’s
+//     real value into that range.
         params[i]->setValueNotifyingHost(params[i]->convertTo0to1(preset.param[i]));
     }
     
@@ -435,7 +436,7 @@ void JX11AudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     // as intermediaries to make it easy to save and load complex data.
     copyXmlToBinary(*apvts.copyState().createXml(), destData);
     
-    DBG(apvts.copyState().toXmlString());
+//    DBG(apvts.copyState().toXmlString());
 }
 
 void JX11AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
@@ -445,12 +446,14 @@ void JX11AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
     
 //    Parse binary data into an xml document
     std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
+    
 //    Verifying that xml contains the parameter tag
     if (xml.get() != nullptr && xml->hasTagName(apvts.state.getType())) {
-//        Updating the values of all parameters to the new values. Thread-safe.
+//     Updating the values of all parameters to the new values. Thread-safe.
         apvts.replaceState(juce::ValueTree::fromXml(*xml));
-//        Signal processBlock() to call update() again.
-//        Making sure the the values are up-to-date
+        
+//     Signal processBlock() to call update() again.
+//     Making sure the the values are up-to-date
         parametersChanged.store(true);
     }
 }

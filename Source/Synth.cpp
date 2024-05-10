@@ -49,7 +49,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
 //        Check if key is pressed.
         if (voice.note > 0) {
 //            Audio data with added noise.
-            output = voice.render() + noise;
+            output = voice.render(noise);
         }
         
 //        Write output values into the audio buffer
@@ -86,13 +86,14 @@ void Synth::noteON(int note, int velocity)
     
     voice.osc.period = sampleRate / freq;
     voice.osc.reset();
+    voice.env.level = 1.0f;
 }
 
 void Synth::noteOff(int note)
 {
 //    Only if the released key is for the same note
     if (voice.note == note) {
-        voice.note = 0;
+//        voice.note = 0;
     }
 }
 //==============================================================================

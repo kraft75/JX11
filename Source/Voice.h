@@ -16,11 +16,15 @@
 #pragma once
 
 #include "Oscillator.h"
+#include "Envelope.h"
 
 struct Voice {
 //    Register the note and velocity
 //    of the most recently pressed key
     int note;
+    
+//    Envelope object
+    Envelope env;
     
 //    Sine oscillator
     Oscillator osc;
@@ -37,10 +41,19 @@ struct Voice {
     }
     
 //    Get the next sample from the oscillator
-    float render() {
+    float render(float input) {
         float sample = osc.nextSample();
 //        .997f acts like a low-pass filter preventin an offset
         saw = saw * .997f + sample;
-        return saw;
+        
+//        Noise added to the oscillator
+        float output = saw + input;
+        
+        float envelope = env.nextValue();
+
+//        Osc value with noise multiplied
+//         by the current envelope level.
+        
+        return output * envelope;
     }
 };
