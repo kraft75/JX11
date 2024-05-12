@@ -38,6 +38,7 @@ struct Voice {
         note = 0;
         osc.reset();
         saw = 0.0f;
+        env.reset();
     }
     
 //    Get the next sample from the oscillator

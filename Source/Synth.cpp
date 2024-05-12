@@ -88,17 +88,23 @@ void Synth::noteON(int note, int velocity)
     voice.osc.period = sampleRate / freq;
     voice.osc.reset();
     
+    Envelope& env = voice.env;
 //    Settings of the envelope attributes
-    voice.env.multiplier = envDecay;
-    voice.env.level =  1.0f;
-    voice.env.target = 0.2f;
+    env.attackMultiplier = envAttack;
+    env.decayMultiplier = envDecay;
+    env.sustainLevel = envSustain;
+    env.releaseMultiplier = envRelease;
+    
+    env.level =  1.0f;
+    env.target = env.sustainLevel;
+    env.multiplier = env.decayMultiplier;
 }
 
 void Synth::noteOff(int note)
 {
 //    Only if the released key is for the same note
     if (voice.note == note) {
-//        voice.note = 0;
+        voice.note = 0;
     }
 }
 //==============================================================================

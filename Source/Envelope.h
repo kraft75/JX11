@@ -38,10 +38,22 @@ public:
         return level;
     }
     
+    void reset()
+    {
+        level = 0.0f;
+        target = 0.0f;
+        multiplier = 0.0f;
+    }
+    
 //    Start value = 1
     float level;
 //    Degree of fading out
     float multiplier;
+    float attackMultiplier;
+    float decayMultiplier;
+    float sustainLevel;
+    float releaseMultiplier;
+    
 //    Value of sustain level
     float target;
 };
