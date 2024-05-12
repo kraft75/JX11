@@ -6,7 +6,7 @@
     Author:  MacJay
 
  
-    The level variable holds the current envelope level.
+    1.The level variable holds the current envelope level.
     It will start at 1.0 or 100%.
     Every time nextValue() is called,
     level is multiplied by the value multiplier
@@ -14,7 +14,9 @@
     It provides a smooth fade out in the release phase
     of the note.
  
-    Calculate the multiplier
+    2.Calculate the multiplier (turn knob), instead of a fixed value
+ 
+    3.Fade out at the sustain level
   ==============================================================================
 */
 
@@ -28,11 +30,18 @@ public:
     float nextValue()
     {
 //        Fade out.
-        level *= multiplier;
+//        2.level *= multiplier;(Fade out at SILENCE)
+//        3. Formula:
+//        level = (1 - multiplier) * target + multiplier * level
+        level = multiplier * (level - target) + target;
         
         return level;
     }
     
+//    Start value = 1
     float level;
+//    Degree of fading out
     float multiplier;
+//    Value of sustain level
+    float target;
 };

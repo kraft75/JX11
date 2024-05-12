@@ -84,11 +84,14 @@ void Synth::noteON(int note, int velocity)
     */
     float freq = 440.0f * std::exp2(float(note - 69) / 12.0f);
     
+//    Settings of the oscillators attributes
     voice.osc.period = sampleRate / freq;
     voice.osc.reset();
     
+//    Settings of the envelope attributes
     voice.env.multiplier = envDecay;
-    voice.env.level = 1.0f;
+    voice.env.level =  1.0f;
+    voice.env.target = 0.2f;
 }
 
 void Synth::noteOff(int note)
