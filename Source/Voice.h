@@ -41,6 +41,12 @@ struct Voice {
         env.reset();
     }
     
+//    Time to release the note
+    void release()
+    {
+        env.release();
+    }
+    
 //    Get the next sample from the oscillator
     float render(float input) {
         float sample = osc.nextSample();

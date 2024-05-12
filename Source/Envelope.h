@@ -17,6 +17,8 @@
     2.Calculate the multiplier (turn knob), instead of a fixed value
  
     3.Fade out at the sustain level
+ 
+    4.Calculate the release time
   ==============================================================================
 */
 
@@ -43,6 +45,24 @@ public:
         level = 0.0f;
         target = 0.0f;
         multiplier = 0.0f;
+    }
+    
+//    Only renders the voice if
+//    the envelope is still active.
+//    Otherwise, it stops the voice
+//    playing when it breached the target.
+//    Sets target to 0.
+    bool isActive() const
+    {
+        return level > SILENCE;
+    }
+    
+//    4.Sets the multiplier for
+//    the release time.
+    void release()
+    {
+        target = 0.0f;
+        multiplier = releaseMultiplier;
     }
     
 //    Start value = 1

@@ -47,7 +47,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
         
         float output = 0.0f;
 //        Check if key is pressed.
-        if (voice.note > 0) {
+        if (voice.env.isActive()) {
 //            Audio data with added noise.
             output = voice.render(noise);
         }
@@ -56,6 +56,10 @@ void Synth::render(float** outputBuffers, int sampleCount)
         outputBufferLeft[sample] = output;
         if (outputBufferRight != nullptr) {
             outputBufferRight[sample] = output;
+        }
+        
+        if (!voice.env.isActive()) {
+            voice.env.reset();
         }
         
 //        Mutes the audio for values beyond -2.0f and 2.0f
@@ -104,7 +108,7 @@ void Synth::noteOff(int note)
 {
 //    Only if the released key is for the same note
     if (voice.note == note) {
-        voice.note = 0;
+        voice.release();
     }
 }
 //==============================================================================
