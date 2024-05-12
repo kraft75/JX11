@@ -352,23 +352,49 @@ void JX11AudioProcessor::update()
     
 //    Envelope / Decay time
 //    -------------------------------------------------------------
-//        Actual sample rate
+//    Actual sample rate
     float sampleRate = float(getSampleRate());
+    
+//    First version
     
 //    EnvDecay param measures in 0-100%. Conversion to 0-1.
 //    This example defies the decay time of 100% at 5 sec.
-    float decayTime = envDecayParam->get() / 100.0f * 5.0f;
+//    float decayTime = envDecayParam->get() / 100.0f * 5.0f;
 //    In the digital audio domain time is measured in samples.
 //    For instance, a sampleRate of 44,1kHz produces in 1 sec
 //    44100 samples. The decayTime is a multiplier for time
 //    in samples.
-    float decaySamples = sampleRate * decayTime;
+//    float decaySamples = sampleRate * decayTime;
 //    The multiplier induces the function exp() to
 //    decrease from 1 ( Level = 100%) to
 //    0 (SILENCE) in a certain amount of time.
 //    Due to the human hearing the lower
 //    threshold is expressed in dB.
-    synth.envDecay = std::exp(std::log(SILENCE) / decaySamples);
+//    synth.envDecay = std::exp(std::log(SILENCE) / decaySamples);
+    
+//    Actual second version
+    
+//    Scale time values in sec to the corresponding
+//    time values in samples.
+    float inverseSampleRate = 1.0f / sampleRate;
+    
+    
+    synth.envAttack =
+        std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envAttackParam->get()));
+    
+    synth.envDecay =
+        std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envDecayParam->get()));
+    
+    synth.envSustain = envSustainParam->get() / 100.0f;
+    
+    float envRelease = envReleaseParam->get();
+    
+    if (envRelease < 1.0f) {
+        synth.envRelease = 0.75f; // extra fast release
+    }
+    else {
+        synth.envRelease = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envRelease));
+    }
 }
 
 //==============================================================================

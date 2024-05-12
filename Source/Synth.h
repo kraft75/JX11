@@ -55,6 +55,9 @@ public:
 //    Parameter noise
     float noiseMix;
     
-//    Parameter envelope decay
+//    Parameter envelope phases
+    float envAttack;
     float envDecay;
+    float envSustain;
+    float envRelease;
 };
