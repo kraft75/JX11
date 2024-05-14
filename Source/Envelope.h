@@ -19,6 +19,8 @@
     3.Fade out at the sustain level
  
     4.Calculate the release time
+ 
+    5. Set the attack
   ==============================================================================
 */
 
@@ -28,6 +30,10 @@
 const float SILENCE = 0.0001f;
 
 class Envelope {
+//    Value of sustain level
+        float target;
+//    Fade out
+    float multiplier;
 public:
     float nextValue()
     {
@@ -37,6 +43,16 @@ public:
 //        level = (1 - multiplier) * target + multiplier * level
         level = multiplier * (level - target) + target;
         
+//        5. Set the target of the attack to 2.0f in
+//        order to make the curve steeper. Giving the
+//        attack more punch.
+//        Transition to the sustainLevel by setting the
+//        target to the sustain level and using the decay
+//        multiplier.
+        if (level + target > 3.0f) {
+            multiplier = decayMultiplier;
+            target = sustainLevel;
+        }
         return level;
     }
     
@@ -45,6 +61,25 @@ public:
         level = 0.0f;
         target = 0.0f;
         multiplier = 0.0f;
+    }
+    
+    bool isInAttack() 
+    {
+        return target >= 2.0f;
+    }
+    
+//    Setting target to 2.0f and activating
+//    the attackMultiplier. level guarantees
+//    that the initial attack level is above
+//    SILENCE, which enables new notes to be
+//    played.
+    void attack()
+    {
+//        += assignment supports
+//        legato-style playing.
+        level += SILENCE + SILENCE;
+        target = 2.0;
+        multiplier = attackMultiplier;
     }
     
 //    Only renders the voice if
@@ -68,12 +103,10 @@ public:
 //    Start value = 1
     float level;
 //    Degree of fading out
-    float multiplier;
     float attackMultiplier;
     float decayMultiplier;
     float sustainLevel;
     float releaseMultiplier;
     
-//    Value of sustain level
-    float target;
+
 };

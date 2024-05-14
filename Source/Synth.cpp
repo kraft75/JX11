@@ -98,10 +98,8 @@ void Synth::noteON(int note, int velocity)
     env.decayMultiplier = envDecay;
     env.sustainLevel = envSustain;
     env.releaseMultiplier = envRelease;
-    
-    env.level =  1.0f;
-    env.target = env.sustainLevel;
-    env.multiplier = env.decayMultiplier;
+//    Setting private members level and target
+    env.attack();
 }
 
 void Synth::noteOff(int note)
