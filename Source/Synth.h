@@ -28,8 +28,10 @@ class Synth {
 //    At the momemt monophonic
     Voice voice;
     
+//    Mixing noise to the oscillator
     NoiseGenerator noiseGen;
     
+//    Mutes the audio for ear protection
     Utils earProtect;
     
 public:
@@ -60,4 +62,15 @@ public:
     float envDecay;
     float envSustain;
     float envRelease;
+    
+//    Parameter which mixes two oscillators.
+//    The amplitude of osc2 is a percentage
+//    of osc1’s amplitude.
+    float oscMix;
+//    Shifts the period of the second oscillator
+    float detune;
+    
+//    Parameter for overall tuning
+//    Total amount of tuning measured in semitones
+    float tune;
 };

@@ -27,16 +27,27 @@ struct Voice {
     Envelope env;
     
 //    Sine oscillator
-    Oscillator osc;
+    Oscillator osc1;
+    Oscillator osc2;
     
 //    Turning BLIT into sawtooth wave
     float saw;
+    
+//    New detuned value by the oscillator
+//    voice.osc2.period
+//    Updating the period in processBlock
+    float period;
     
 //    On initialization of the plug-in
 //    reset note and velocity
     void reset() {
         note = 0;
-        osc.reset();
+//        Reseting osc objects is optional.
+//        Mimicking an analogue hardware
+//        synthesizer should exclude a
+//        reset.
+        osc1.reset();
+        osc2.reset();
         saw = 0.0f;
         env.reset();
     }
@@ -49,9 +60,11 @@ struct Voice {
     
 //    Get the next sample from the oscillator
     float render(float input) {
-        float sample = osc.nextSample();
+        float sample1 = osc1.nextSample();
+        float sample2 = osc2.nextSample();
 //        .997f acts like a low-pass filter preventin an offset
-        saw = saw * .997f + sample;
+//        Output from second osc is subtracted from the first.
+        saw = saw * .997f + sample1 - sample2;
         
 //        Noise added to the oscillator
         float output = saw + input;
@@ -60,7 +73,6 @@ struct Voice {
 
 //        Osc value with noise multiplied
 //         by the current envelope level.
-        
         return output * envelope;
     }
 };

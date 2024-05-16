@@ -122,7 +122,8 @@ int JX11AudioProcessor::getCurrentProgram()
 void JX11AudioProcessor::setCurrentProgram (int index)
 {
     currentProgram = index;
-    
+ 
+//    Knobs
 //    AudioParameterFloat and AudioParameterChoice objects.
     juce::RangedAudioParameter *params[NUM_PARAMS] = {
             oscMixParam,
@@ -341,17 +342,22 @@ void JX11AudioProcessor::update()
 {
     
 //    Noise
-//    -------------------------------------------------------------
-//    Map the value from 0%-100% to 0-1. Thread-safe operation.
+//    --------------------------------------------------------------------------
+
+//    Maps the value from 0%-100% to 0-1. Thread-safe operation.
         float noiseMix = noiseParam->get() / 100.0f;
+    
 //    Squaring the parameter to become logarithmic. Human hearing.
         noiseMix *= noiseMix;
+    
 //    The audio rendering happens in class Synth. Times 0.06 sets the
 //    maximum noise level roughly to -24dB for flavoring the sound.
         synth.noiseMix = noiseMix * 0.06f;
-    
-//    Envelope / Decay time
-//    -------------------------------------------------------------
+//    --------------------------------------------------------------------------
+
+//    Envelope
+//    --------------------------------------------------------------------------
+
 //    Actual sample rate
     float sampleRate = float(getSampleRate());
     
@@ -395,6 +401,39 @@ void JX11AudioProcessor::update()
     else {
         synth.envRelease = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envRelease));
     }
+//    --------------------------------------------------------------------------
+
+//    Oscillator Mix
+//    --------------------------------------------------------------------------
+
+//    Maps the value from 0%-100% to 0-1. Thread-safe operation.
+    synth.oscMix = oscMixParam->get() / 100.0f;
+    
+//    Detuning the second oscillator
+//    by cents and half steps.
+    float semi = oscTuneParam->get();
+//    A cent is 1/100th of a semitone
+    float cent = oscFineParam->get();
+    
+//    Same as
+//    float freq = 440.0f * std::exp2(float(note - 69) / 12.0f)
+//    to calculate the pitch of any note. 2^1/12 equals 1.059463094359f.
+//    semi + cent/100 gets the total amount of semitones. Prefer
+//    multiplying versions due to processing. The negative
+//    algebraic sign results in the vice versa tuning of the pitch.
+    synth.detune = std::pow(1.059463094359f, -semi - 0.01f * cent);
+//    --------------------------------------------------------------------------
+    
+//    Overall Tuning
+//    --------------------------------------------------------------------------
+    
+//    2 octaves up or down
+    float octave = octaveParam->get();
+//    –100 to +100 cents
+    float tuning = tuningParam->get();
+//    12 semitones in an ocatve and 100 cents
+//    in a semitone
+    synth.tune = octave * 12.0f + tuning * .01f;
 }
 
 //==============================================================================

@@ -38,6 +38,12 @@ void Synth::render(float** outputBuffers, int sampleCount)
     float* outputBufferLeft = outputBuffers[0];
     float* outputBufferRight = outputBuffers[1];
     
+//    New detuned value by the oscillator
+//    while the sound is playing.
+//    Updating the period in processBlock
+    voice.osc1.period = voice.period;
+    voice.osc2.period = voice.osc1.period * detune;
+    
 //    Loop thru the samples. If there were MIDI messages
 //    this will be less than the total number of samples in the block.
     for (int sample = 0; sample < sampleCount; ++sample) {
@@ -75,9 +81,6 @@ void Synth::noteON(int note, int velocity)
 //    Register recently played note and velocity
     voice.note = note;
     
-    voice.osc.amplitude = (velocity / 127.0f) * 0.5f;
-    
-    
     /*  P. 115
         1: (note − 69) determines the number of semitones this note is up or down from
         the A with note number 69.
@@ -85,15 +88,28 @@ void Synth::noteON(int note, int velocity)
         2:  calculate 2^(note−69)/12 to get the multiplier.
      
         3: Apply this multiplier to frequency 440Hz to get the pitch of the note.
+     
+        4: Add the overall tuning to 1.
     */
-    float freq = 440.0f * std::exp2(float(note - 69) / 12.0f);
+    float freq = 440.0f * std::exp2((float(note - 69) + tune) / 12.0f);
     
 //    Settings of the oscillators attributes
-    voice.osc.period = sampleRate / freq;
-    voice.osc.reset();
+//    ------------------------------------------------------------------
+//    Activating the first oscillator
+    voice.period = sampleRate / freq;
+    voice.osc1.amplitude = (velocity / 127.0f) * 0.5f;
+//    No reset emulates the behavior of an analogue
+//    hardware
+//    voice.osc1.reset();
     
-    Envelope& env = voice.env;
+//    Activating the second oscillator
+    voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
+//    voice.osc2.reset();
+//    ------------------------------------------------------------------
+
 //    Settings of the envelope attributes
+//    ------------------------------------------------------------------
+    Envelope& env = voice.env;
     env.attackMultiplier = envAttack;
     env.decayMultiplier = envDecay;
     env.sustainLevel = envSustain;
