@@ -42,7 +42,7 @@ public:
     void allocateResources(double sampleRate, int samplesPerBlock);
     
 //    Called after the audio finished. Comparable to
-//    releaseResources()
+//    releaseResources().
     void deallocateResources();
     
 //    reset state
@@ -54,10 +54,13 @@ public:
 //    Handling MIDI messages
     void midiMessage(uint8_t data0, uint8_t data1, uint8_t data2);
     
-//    Parameter noise
+//    Renders the period for a given MIDI note number.
+    float calcPeriod(int) const;
+    
+//    Parameter noise.
     float noiseMix;
     
-//    Parameter envelope phases
+//    Parameter envelope phases.
     float envAttack;
     float envDecay;
     float envSustain;

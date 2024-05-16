@@ -91,12 +91,14 @@ void Synth::noteON(int note, int velocity)
      
         4: Add the overall tuning to 1.
     */
-    float freq = 440.0f * std::exp2((float(note - 69) + tune) / 12.0f);
+//    float freq = 440.0f * std::exp2((float(note - 69) + tune) / 12.0f);
     
 //    Settings of the oscillators attributes
 //    ------------------------------------------------------------------
 //    Activating the first oscillator
-    voice.period = sampleRate / freq;
+//    voice.period = sampleRate / freq;
+    float period = calcPeriod(note);
+    voice.period = period;
     voice.osc1.amplitude = (velocity / 127.0f) * 0.5f;
 //    No reset emulates the behavior of an analogue
 //    hardware
@@ -148,5 +150,23 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
             
         
     }
+}
+//==============================================================================
+float Synth::calcPeriod(int note) const     
+{
+//    Period in samples instead of Hz. p. 225
+//    from freq to period.
+//    replace pow(x, y) with exp(y * log(x)). Exp is faster.
+    float period = tune * std::exp(-0.05776226505f * float(note));
+    
+//    BLIT-based oscillator may not work reliably if
+//    the period is too small.
+//    A prevention is to guarantee a period with
+//    with at least 6 samples.
+    while (period < .6f || (period * detune) < .6f) {
+        period += period;
+    }
+    
+    return period;
 }
 

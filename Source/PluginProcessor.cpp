@@ -431,9 +431,16 @@ void JX11AudioProcessor::update()
     float octave = octaveParam->get();
 //    –100 to +100 cents
     float tuning = tuningParam->get();
+    float tuneInSemi = -36.3763f - 12.0f * octave - tuning / 100.0f;
+    
 //    12 semitones in an ocatve and 100 cents
 //    in a semitone
-    synth.tune = octave * 12.0f + tuning * .01f;
+//    synth.tune = octave * 12.0f + tuning * .01f;
+    
+//    New method:
+//    It combines the sample rate, the tuning in octaves and cents,
+//    and the reference pitch of 8.1758 Hz, into a single number.
+    synth.tune = sampleRate * std::exp(0.05776226505f * tuneInSemi);
 }
 
 //==============================================================================
