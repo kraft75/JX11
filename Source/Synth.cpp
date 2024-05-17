@@ -30,6 +30,7 @@ void Synth::reset()
 //       reset Voice and Generator instance
     voice.reset();
     noiseGen.reset();
+    pitchBend = 1.0f;
 }
 //==============================================================================
 
@@ -41,7 +42,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
 //    New detuned value by the oscillator
 //    while the sound is playing.
 //    Updating the period in processBlock
-    voice.osc1.period = voice.period;
+    voice.osc1.period = voice.period * pitchBend;
     voice.osc2.period = voice.osc1.period * detune;
     
 //    Loop thru the samples. If there were MIDI messages
@@ -133,11 +134,12 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
 //    Consider only the four highest bits (command)
     switch (data0& 0xF0) {
 //            Note off
-        case 0x80:
+        case 0x80: {
             noteOff(data1& 0x7F);
             break;
+        }
 //            Note on
-        case 0x90:
+        case 0x90: {
             uint8_t note = data1& 0x7F;
             uint8_t velo = data2& 0x7F;
             
@@ -147,7 +149,22 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
                 noteOff(note);
             }
             break;
+        }
+//            Pitch bend
+        case 0xE0: {
+//            In Pitch bend data1 and data2 are combined.
+//            It results in a 14-bit number in a a range of
+//            0 – 16383 if unsigned or –8192 to 8191 signed.
+//            (data1 + 128 * data2 - 8192)
             
+//            Range to make the pitch rise  in 2 semitones
+//            2^2/12 = 1.12. Lower 2 semitones is 0.89.
+//            By changing the period it is inverse.
+//            Mapping: –8192 to 8191 into 1.12 – 0.89.
+//            Origin formula: 2^2*(data/8192)/12
+            pitchBend = std::exp(-0.000014102f * float(data1 + 128 * data2 - 8192));
+            break;
+        }
         
     }
 }

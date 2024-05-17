@@ -76,4 +76,8 @@ public:
 //    Parameter for overall tuning
 //    Total amount of tuning measured in semitones
     float tune;
+    
+//    Pitch bend
+//    Controlled by a MIDI message
+    float pitchBend;
 };
