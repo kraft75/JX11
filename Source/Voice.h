@@ -38,6 +38,11 @@ struct Voice {
 //    Updating the period in processBlock
     float period;
     
+//    Making the synth stereophonic.
+//    Lower notes to the left speaker.
+//    Vice versa higher notes.
+    float panLeft, panRight;
+    
 //    On initialization of the plug-in
 //    reset note and velocity
     void reset() {
@@ -50,6 +55,9 @@ struct Voice {
         osc2.reset();
         saw = 0.0f;
         env.reset();
+        panLeft = 0.707f;
+        panRight = 0.707f;
+
     }
     
 //    Time to release the note
@@ -59,7 +67,8 @@ struct Voice {
     }
     
 //    Get the next sample from the oscillator
-    float render(float input) {
+    float render(float input) 
+    {
         float sample1 = osc1.nextSample();
         float sample2 = osc2.nextSample();
 //        .997f acts like a low-pass filter preventin an offset
@@ -74,5 +83,18 @@ struct Voice {
 //        Osc value with noise multiplied
 //         by the current envelope level.
         return output * envelope;
+    }
+    
+//    Giving panLeft/panRight appropriate values
+//    Constant power panning makes the loudness always
+//    appear the same. No matter at which position.
+    void updatePanning()
+    {
+//        Converts a MIDI Note into a panning value from –1 to +1.
+        float panning = std::clamp((note - 60.0f) / 24.0f, -1.0f, 1.0f);
+//        A panning value of –1 adjusts the sound fully to the left
+        panLeft = std::sin(PI_OVER_4 * (1.0f - panning));
+//        Vice versa
+        panRight = std::sin(PI_OVER_4 * (1.0f + panning));
     }
 };

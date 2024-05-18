@@ -52,28 +52,39 @@ void Synth::render(float** outputBuffers, int sampleCount)
 //        the parameter noise (noiseMix).
         float noise = noiseGen.nextValue() * noiseMix;
         
-        float output = 0.0f;
+//        Output for the left and right speaker
+        float outputLeft = 0.0f;
+        float outputRight = 0.0f;
+        
 //        Check if key is pressed.
         if (voice.env.isActive()) {
 //            Audio data with added noise.
-            output = voice.render(noise);
+            float output = voice.render(noise);
+//            Sample is mixed into the left/right
+//            channel output using panLeft/panRight
+//            amount.
+            outputLeft += output * voice.panLeft;
+            outputRight += output * voice.panRight;
         }
         
-//        Write output values into the audio buffer
-        outputBufferLeft[sample] = output;
+//        Write output values into the respective audio buffer
         if (outputBufferRight != nullptr) {
-            outputBufferRight[sample] = output;
+            outputBufferLeft[sample] = outputLeft;
+            outputBufferRight[sample] = outputRight;
+        } else {
+//            Case mono: left and right values need to be combined
+//            into a mono sample. No stereo.
+            outputBufferLeft[sample] = (outputLeft + outputRight) * .5f;
         }
-        
-        if (!voice.env.isActive()) {
-            voice.env.reset();
-        }
-        
-//        Mutes the audio for values beyond -2.0f and 2.0f
-        earProtect.protectYourEars(outputBufferLeft, sampleCount);
-        earProtect.protectYourEars(outputBufferRight, sampleCount);
-
     }
+    
+    if (!voice.env.isActive()) {
+        voice.env.reset();
+    }
+    
+//        Mutes the audio for values beyond -2.0f and 2.0f
+    earProtect.protectYourEars(outputBufferLeft, sampleCount);
+    earProtect.protectYourEars(outputBufferRight, sampleCount);
 }
 //==============================================================================
 
@@ -81,6 +92,8 @@ void Synth::noteON(int note, int velocity)
 {
 //    Register recently played note and velocity
     voice.note = note;
+    
+    
     
     /*  P. 115
         1: (note − 69) determines the number of semitones this note is up or down from
