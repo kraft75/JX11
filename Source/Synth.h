@@ -6,6 +6,18 @@
     Author:  MacJay
  
     This class makes the actual sound
+ 
+    P. 115
+    1: (note − 69) determines the number of semitones this note is up or down from
+     the A with note number 69.
+  
+    2:  calculate 2^(note−69)/12 to get the multiplier.
+  
+    3: Apply this multiplier to frequency 440Hz to get the pitch of the note.
+  
+    4: Add the overall tuning to 1.
+    float freq = 440.0f * std::exp2((float(note - 69) + tune) / 12.0f);
+
 
   ==============================================================================
 */
@@ -19,21 +31,6 @@
 
 
 class Synth {
-    float sampleRate;
-    
-    void noteON(int, int);
-    void noteOff(int);
-    
-//    Multiple voices for each note playing.
-//    At the momemt monophonic
-    Voice voice;
-    
-//    Mixing noise to the oscillator
-    NoiseGenerator noiseGen;
-    
-//    Mutes the audio for ear protection
-    Utils earProtect;
-    
 public:
     Synth();
     
@@ -55,7 +52,16 @@ public:
     void midiMessage(uint8_t data0, uint8_t data1, uint8_t data2);
     
 //    Renders the period for a given MIDI note number.
-    float calcPeriod(int) const;
+    float calcPeriod(int, int) const;
+    
+//    Setting up the voice with envelope and oscillators
+    void startVoice(int v, int note, int velocity);
+    
+//    Find free voices for chords.
+//    When all voices are in use, the synthesizer needs to
+//    perform voice stealing. It has to decide which voice
+//    should stop playing its old note and start playing the new one.
+    int findFreeVoice() const;
     
 //    Parameter noise.
     float noiseMix;
@@ -80,4 +86,24 @@ public:
 //    Pitch bend
 //    Controlled by a MIDI message
     float pitchBend;
+    
+//    Maximum amount of polyphony
+    static constexpr int MAX_VOICES = 8;
+//    Choice between 1 or MAX_VOICES
+    int numVoices;
+private:
+    float sampleRate;
+    
+    void noteON(int, int);
+    void noteOff(int);
+    
+//    Multiple voices for each note playing.
+    std::array<Voice, MAX_VOICES>  voices;
+    
+//    Mixing noise to the oscillator
+    NoiseGenerator noiseGen;
+    
+//    Mutes the audio for ear protection
+    Utils earProtect;
+    
 };

@@ -63,7 +63,7 @@ public:
         multiplier = 0.0f;
     }
     
-    bool isInAttack() 
+    bool isInAttack() const
     {
         return target >= 2.0f;
     }

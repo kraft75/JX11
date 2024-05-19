@@ -441,6 +441,12 @@ void JX11AudioProcessor::update()
 //    It combines the sample rate, the tuning in octaves and cents,
 //    and the reference pitch of 8.1758 Hz, into a single number.
     synth.tune = sampleRate * std::exp(0.05776226505f * tuneInSemi);
+//    --------------------------------------------------------------------------
+    
+//    Polyphony
+//    --------------------------------------------------------------------------
+//    Choice of polyphony (Synth::MAX_VOICES) or not (1)
+    synth.numVoices = (polyModeParam->getIndex() == 0) ? 1 : Synth::MAX_VOICES;
 }
 
 //==============================================================================

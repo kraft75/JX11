@@ -10,6 +10,8 @@
 
 #include "Synth.h"
 
+static const float ANALOG = 0.002f;
+
 Synth::Synth() : sampleRate(44100.0f) {}
 //==============================================================================
 void Synth::allocateResources(double sampleRate_, int samplesPerBlock)
@@ -27,8 +29,11 @@ void Synth::deallocateResources()
 void Synth::reset()
 {
 //    On initialization of the plug-in
-//       reset Voice and Generator instance
-    voice.reset();
+//    reset Voice and Generator instance.
+//    Defy start value for Pitch bend
+    for (int i = 0; i < MAX_VOICES; ++i) {
+        voices[i].reset();
+    }
     noiseGen.reset();
     pitchBend = 1.0f;
 }
@@ -42,8 +47,14 @@ void Synth::render(float** outputBuffers, int sampleCount)
 //    New detuned value by the oscillator
 //    while the sound is playing.
 //    Updating the period in processBlock
-    voice.osc1.period = voice.period * pitchBend;
-    voice.osc2.period = voice.osc1.period * detune;
+    for (int i = 0; i < MAX_VOICES; ++i) {
+        Voice& voice = voices[i];
+//        Check if key is pressed.
+        if (voice.env.isActive()) {
+            voice.osc1.period = voice.period * pitchBend;
+            voice.osc2.period = voice.osc1.period * detune;
+        }
+    }
     
 //    Loop thru the samples. If there were MIDI messages
 //    this will be less than the total number of samples in the block.
@@ -56,16 +67,20 @@ void Synth::render(float** outputBuffers, int sampleCount)
         float outputLeft = 0.0f;
         float outputRight = 0.0f;
         
+        for (int i = 0; i < MAX_VOICES; ++i) {
+            Voice& voice = voices[i];
 //        Check if key is pressed.
-        if (voice.env.isActive()) {
+            if (voice.env.isActive()) {
 //            Audio data with added noise.
-            float output = voice.render(noise);
+                float output = voice.render(noise);
 //            Sample is mixed into the left/right
 //            channel output using panLeft/panRight
 //            amount.
-            outputLeft += output * voice.panLeft;
-            outputRight += output * voice.panRight;
+                outputLeft += output * voice.panLeft;
+                outputRight += output * voice.panRight;
+            }
         }
+
         
 //        Write output values into the respective audio buffer
         if (outputBufferRight != nullptr) {
@@ -78,9 +93,13 @@ void Synth::render(float** outputBuffers, int sampleCount)
         }
     }
     
-    if (!voice.env.isActive()) {
-        voice.env.reset();
+    for (int i = 0; i < MAX_VOICES; ++i) {
+        Voice& voice = voices[i];
+        if (!voice.env.isActive()) {
+            voice.env.reset();
+        }
     }
+    
     
 //        Mutes the audio for values beyond -2.0f and 2.0f
     earProtect.protectYourEars(outputBufferLeft, sampleCount);
@@ -88,41 +107,11 @@ void Synth::render(float** outputBuffers, int sampleCount)
 }
 //==============================================================================
 
-void Synth::noteON(int note, int velocity)
+void Synth::startVoice(int v, int note, int velocity)
 {
-//    Register recently played note and velocity
-    voice.note = note;
+    float period = calcPeriod(v, note);
+    Voice& voice = voices[v];
     
-    
-    
-    /*  P. 115
-        1: (note − 69) determines the number of semitones this note is up or down from
-        the A with note number 69.
-     
-        2:  calculate 2^(note−69)/12 to get the multiplier.
-     
-        3: Apply this multiplier to frequency 440Hz to get the pitch of the note.
-     
-        4: Add the overall tuning to 1.
-    */
-//    float freq = 440.0f * std::exp2((float(note - 69) + tune) / 12.0f);
-    
-//    Settings of the oscillators attributes
-//    ------------------------------------------------------------------
-//    Activating the first oscillator
-//    voice.period = sampleRate / freq;
-    float period = calcPeriod(note);
-    voice.period = period;
-    voice.osc1.amplitude = (velocity / 127.0f) * 0.5f;
-//    No reset emulates the behavior of an analogue
-//    hardware
-//    voice.osc1.reset();
-    
-//    Activating the second oscillator
-    voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
-//    voice.osc2.reset();
-//    ------------------------------------------------------------------
-
 //    Settings of the envelope attributes
 //    ------------------------------------------------------------------
     Envelope& env = voice.env;
@@ -132,13 +121,66 @@ void Synth::noteON(int note, int velocity)
     env.releaseMultiplier = envRelease;
 //    Setting private members level and target
     env.attack();
+//    ------------------------------------------------------------------
+//    Oscillator settings
+//    ------------------------------------------------------------------
+
+    voice.osc1.amplitude = (velocity / 127.0f) * 0.5f;
+//    No reset. Emulating the behavior of an analogue
+//    hardware.
+//    voice.osc1.reset();
+    voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
+//    voice.osc2.reset();
+    
+    voice.period = period;
+    voice.note = note;
+    voice.updatePanning();
+}
+
+void Synth::noteON(int note, int velocity)
+{
+
+//    0 is mono mode.
+    int v = 0;
+    
+//    polyphonic
+    if (numVoices > 1) {
+        v = findFreeVoice();
+    }
+    
+    startVoice(v, note, velocity);
+}
+
+int Synth::findFreeVoice() const 
+{
+    int v = 0;
+// Random threshold for initialization
+    float l = 100.0f;
+    
+    for (int i = 0; i < MAX_VOICES; ++i) {
+//        Find the voice with the lowest envelope level.
+//        Ignores voices in the attack stage.
+        if (voices[i].env.level < l && !voices[i].env.isInAttack()) {
+            l = voices[i].env.level;
+            v = i;
+        }
+    }
+    return v;
 }
 
 void Synth::noteOff(int note)
 {
-//    Only if the released key is for the same note
-    if (voice.note == note) {
-        voice.release();
+    for (int i = 0; i < MAX_VOICES; ++i) {
+        Voice& voice = voices[i];
+//    Checking all voices to see which is playing
+//    the actual note.
+        if (voice.note == note) {
+//            Begin the release phase in the envelope.
+            voice.release();
+//            Note Off event was received for this voice.
+//            Voice will keep playing until the note faded out.
+            voice.note = 0;
+        }
     }
 }
 //==============================================================================
@@ -182,12 +224,13 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
     }
 }
 //==============================================================================
-float Synth::calcPeriod(int note) const     
+float Synth::calcPeriod(int v, int note) const
 {
 //    Period in samples instead of Hz. p. 225
 //    from freq to period.
 //    replace pow(x, y) with exp(y * log(x)). Exp is faster.
-    float period = tune * std::exp(-0.05776226505f * float(note));
+//    ANALOG and v emulates random detuning. I.e, temperature.
+    float period = tune * std::exp(-0.05776226505f * (float(note) + ANALOG * float(v)));
     
 //    BLIT-based oscillator may not work reliably if
 //    the period is too small.
