@@ -11,6 +11,7 @@
 #include "Synth.h"
 
 static const float ANALOG = 0.002f;
+static const int SUSTAIN = -1;
 
 Synth::Synth() : sampleRate(44100.0f) {}
 //==============================================================================
@@ -36,6 +37,7 @@ void Synth::reset()
     }
     noiseGen.reset();
     pitchBend = 1.0f;
+    sustainPedalPressed = false;
 }
 //==============================================================================
 
@@ -175,11 +177,17 @@ void Synth::noteOff(int note)
 //    Checking all voices to see which is playing
 //    the actual note.
         if (voice.note == note) {
+            if (sustainPedalPressed) {
+//                Key was released (pedal pressed)
+//                but the voice will keep playing.
+                voice.note = SUSTAIN;
+            } else {
 //            Begin the release phase in the envelope.
-            voice.release();
+                voice.release();
 //            Note Off event was received for this voice.
 //            Voice will keep playing until the note faded out.
-            voice.note = 0;
+                voice.note = 0;
+            }
         }
     }
 }
@@ -220,9 +228,50 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
             pitchBend = std::exp(-0.000014102f * float(data1 + 128 * data2 - 8192));
             break;
         }
-        
+//            Control change
+        case 0xB0: {
+            controlChange(data1, data2);
+            break;
+        }
     }
 }
+
+void Synth::controlChange(uint8_t data1, uint8_t data2)
+{
+//    data1 determines the type of controller
+//    data 2 the value (0-127)
+    switch (data1) {
+//            Sustain pedal
+        case 0x40: {
+//            Puts sustainPedalPressed to the state
+//            true if the value is 64 or more. Usually,
+//            pedals output off (0) on (127). This calc-
+//            ulation also considers pedals with contiuous
+//            values.
+            sustainPedalPressed = (data2 >= 64);
+            
+//            Release note if the pedal isn't pressed
+//            anymore.
+            if (!sustainPedalPressed) {
+                noteOff(SUSTAIN);
+            }
+            break;
+        }
+//            PANIC message. Synth stops playing all
+//            notes immediately.
+//            If a note got stuck.
+        default:
+            if (data1 >= 0x78) {
+                for (int i = 0; i < MAX_VOICES; ++i) {
+                    voices[i].reset();
+                }
+                sustainPedalPressed = false;
+            }
+            break;
+    }
+    
+}
+
 //==============================================================================
 float Synth::calcPeriod(int v, int note) const
 {
@@ -242,4 +291,7 @@ float Synth::calcPeriod(int v, int note) const
     
     return period;
 }
+
+//==============================================================================
+
 

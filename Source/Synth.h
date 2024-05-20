@@ -32,6 +32,10 @@
 
 class Synth {
 public:
+//    ------------------------------------------------------------------
+//    Public methods
+//    ------------------------------------------------------------------
+
     Synth();
     
 //    Called before the host starts playing audio.
@@ -63,6 +67,13 @@ public:
 //    should stop playing its old note and start playing the new one.
     int findFreeVoice() const;
     
+//    Processes various MIDI CC commands
+    void controlChange(uint8_t data1, uint8_t data2);
+    
+//    ------------------------------------------------------------------
+//    Public member variables
+//    ------------------------------------------------------------------
+
 //    Parameter noise.
     float noiseMix;
     
@@ -91,6 +102,8 @@ public:
     static constexpr int MAX_VOICES = 8;
 //    Choice between 1 or MAX_VOICES
     int numVoices;
+    
+    
 private:
     float sampleRate;
     
@@ -105,5 +118,8 @@ private:
     
 //    Mutes the audio for ear protection
     Utils earProtect;
+    
+//    Sustain pedal
+    bool sustainPedalPressed;
     
 };
