@@ -103,6 +103,13 @@ public:
 //    Choice between 1 or MAX_VOICES
     int numVoices;
     
+//    Volume control preventig boosts
+//    in a single voice.
+    float volumeTrim;
+    
+//    Total output level
+    float outputLevel;
+    
     
 private:
     float sampleRate;

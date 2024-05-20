@@ -83,6 +83,9 @@ void Synth::render(float** outputBuffers, int sampleCount)
             }
         }
 
+        outputLeft *= outputLevel;
+        outputRight *= outputLevel;
+
         
 //        Write output values into the respective audio buffer
         if (outputBufferRight != nullptr) {
@@ -127,7 +130,7 @@ void Synth::startVoice(int v, int note, int velocity)
 //    Oscillator settings
 //    ------------------------------------------------------------------
 
-    voice.osc1.amplitude = (velocity / 127.0f) * 0.5f;
+    voice.osc1.amplitude = velocity * volumeTrim;
 //    No reset. Emulating the behavior of an analogue
 //    hardware.
 //    voice.osc1.reset();

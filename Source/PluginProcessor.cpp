@@ -447,9 +447,31 @@ void JX11AudioProcessor::update()
 //    --------------------------------------------------------------------------
 //    Choice of polyphony (Synth::MAX_VOICES) or not (1)
     synth.numVoices = (polyModeParam->getIndex() == 0) ? 1 : Synth::MAX_VOICES;
-}
+//    --------------------------------------------------------------------------
+//    Volume
+//    --------------------------------------------------------------------------
+//    Volume trim
+    
+//    Velocity used to be (velocity / 127) * 0.5
+//    -> 0.5/127 = 0.00394. It's also the value for
+//    oscMix and noiseMix equals 0. Maximum amplitude of a
+//    single voice (-6dB).
+    
+//    oscMix 100%: vT = 0.00384
+//    -> 20 × log10(0.00264/0.00384) = −3.25dB. Two waveforms with
+//    the same amplitude. Therefore, a decrease by -3dB.
+    
+//    oscMix and noiseMix 100%: vt = 0.00084 -> -13dB
+//    Noise makes the perceived sound louder due to more freqs.
+    synth.volumeTrim =
+    0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * 1.5f;
+    
+//    Total volume
+    synth.outputLevel = juce::Decibels::decibelsToGain(outputLevelParam->get());
 
 //==============================================================================
+}
+
 void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     int bufferOffset = 0;
