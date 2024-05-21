@@ -274,6 +274,10 @@ void JX11AudioProcessor::reset()
 {
 //    Call synth reset() from main class
     synth.reset();
+//    Informs the smoother about the initial settting of the
+//    output level.
+    synth.outputLevelSmoother.setCurrentAndTargetValue(
+            juce::Decibels::decibelsToGain(outputLevelParam->get()));
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -467,7 +471,9 @@ void JX11AudioProcessor::update()
     0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * 1.5f;
     
 //    Total volume
-    synth.outputLevel = juce::Decibels::decibelsToGain(outputLevelParam->get());
+//    Does a linear interpolation over 0.05 seconds from the
+//    current value to this new target.
+    synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
 
 //==============================================================================
 }

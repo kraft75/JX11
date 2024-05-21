@@ -38,6 +38,8 @@ void Synth::reset()
     noiseGen.reset();
     pitchBend = 1.0f;
     sustainPedalPressed = false;
+//    Smoothing time
+    outputLevelSmoother.reset(sampleRate, 0.05f);
 }
 //==============================================================================
 
@@ -82,12 +84,16 @@ void Synth::render(float** outputBuffers, int sampleCount)
                 outputRight += output * voice.panRight;
             }
         }
-
+        
+//        Adding all total volume.
+//        The smoother performs a linear interpolation between
+//        the previous value and the new value.
+        float outputLevel = outputLevelSmoother.getNextValue();
         outputLeft *= outputLevel;
         outputRight *= outputLevel;
 
         
-//        Write output values into the respective audio buffer
+//        Write output values into the respective audio buffer.
         if (outputBufferRight != nullptr) {
             outputBufferLeft[sample] = outputLeft;
             outputBufferRight[sample] = outputRight;

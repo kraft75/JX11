@@ -107,8 +107,8 @@ public:
 //    in a single voice.
     float volumeTrim;
     
-//    Total output level
-    float outputLevel;
+//    Smoother for total output level
+    juce::LinearSmoothedValue<float> outputLevelSmoother;
     
     
 private:
