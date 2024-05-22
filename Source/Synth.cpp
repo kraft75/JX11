@@ -136,7 +136,9 @@ void Synth::startVoice(int v, int note, int velocity)
 //    Oscillator settings
 //    ------------------------------------------------------------------
 
-    voice.osc1.amplitude = velocity * volumeTrim;
+//    Changing the velocity from a linear to a logarithmic curve.
+    float vel = .004f * float((velocity + 64) * (velocity + 64)) - 8.0f;
+    voice.osc1.amplitude = vel * volumeTrim;
 //    No reset. Emulating the behavior of an analogue
 //    hardware.
 //    voice.osc1.reset();
@@ -148,14 +150,51 @@ void Synth::startVoice(int v, int note, int velocity)
     voice.updatePanning();
 }
 
+void Synth::restartMonoVoice(int note, int velocity)
+{
+    float period = calcPeriod(0, note);
+    
+    Voice& voice = voices[0];
+    voice.period = period;
+    
+    voice.env.level += SILENCE + SILENCE;
+    voice.note = note;
+    voice.updatePanning();
+
+}
+
 void Synth::noteON(int note, int velocity)
 {
+    if (ignoreVelocity) {
+//        Disabling velocity modulation
+//        by setting a fixed value.
+        velocity = 80;
+    } else {
+//    Velocity sensitivity for the amplitude. Not an
+//    official part of the original JX11.
+//    Formula returns a value between 0 and 1.
+        float sens = std::abs(velocitySensitivity) / 0.05;
+        velocity *= sens;
+    }
+    
+
 
 //    0 is mono mode.
     int v = 0;
     
-//    polyphonic
-    if (numVoices > 1) {
+//    monophonic
+    if (numVoices == 1) {
+//        The key for the previous note is still being held down.
+//        No note off event, yet.
+//        If the condition is false, play staccato.
+        if (voices[0].note > 0) {
+            shiftQueuedNotes();
+//            Call the method for legato-style playing.
+            restartMonoVoice(note, velocity);
+            return;
+        }
+//        Otherwise polyphonic
+    } else {
         v = findFreeVoice();
     }
     
@@ -181,6 +220,18 @@ int Synth::findFreeVoice() const
 
 void Synth::noteOff(int note)
 {
+//    Last note priority
+//    Checks if the synth is mono and that the key that
+//    got released is for the note that is currently playing
+    if ((numVoices == 1) && voices[0].note == note) {
+        int queuedNote = nextQueuedNote();
+//        Is player still holding down any keys
+        if (queuedNote > 0) {
+//            Change the pitch
+            restartMonoVoice(queuedNote, -1);
+        }
+    }
+    
     for (int i = 0; i < MAX_VOICES; ++i) {
         Voice& voice = voices[i];
 //    Checking all voices to see which is playing
@@ -200,6 +251,43 @@ void Synth::noteOff(int note)
         }
     }
 }
+
+void Synth::shiftQueuedNotes() 
+{
+    for (int tmp = MAX_VOICES; tmp > 0; --tmp) {
+        voices[tmp].note = voices[tmp-1].note;
+//        Prevents bugs caused by switching from
+//        polyphonic to monophonic while holding
+//        chords. Otherwise the other voices would
+//        keep ringing.
+        voices[tmp].release();
+    }
+}
+
+int Synth::nextQueuedNote()
+{
+    int held = 0;
+    for (int i = MAX_VOICES - 1; i > 0; --i) {
+        //        Array is iterated backwards in order to
+        //        find the first active note.
+        if (voices[i].note > 0) {
+            //            Save the position of the note
+            held = i;
+        }
+    }
+        
+//        When a pressed note is found
+    if (held > 0) {
+//            Save its value and return it
+        int note = voices[held].note;
+//            and erase it.
+        voices[held].note = 0;
+        return note;
+    }
+    return 0;
+}
+
+
 //==============================================================================
 void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
 {

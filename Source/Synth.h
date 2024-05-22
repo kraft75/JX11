@@ -91,11 +91,11 @@ public:
     float detune;
     
 //    Parameter for overall tuning
-//    Total amount of tuning measured in semitones
+//    Total amount of tuning measured in semitones.
     float tune;
     
-//    Pitch bend
-//    Controlled by a MIDI message
+//    Pitch bend.
+//    Controlled by a MIDI message.
     float pitchBend;
     
 //    Maximum amount of polyphony
@@ -107,8 +107,17 @@ public:
 //    in a single voice.
     float volumeTrim;
     
-//    Smoother for total output level
+//    Smoother for total output level.
     juce::LinearSmoothedValue<float> outputLevelSmoother;
+    
+//    Velocity sensitivity determines the intensity at
+//    which the velocity modulation source modulates
+//    the amplitude.
+    float velocitySensitivity;
+    
+//    Switches the velocity sensitivity
+//    towards the amplitude off.
+    bool ignoreVelocity;
     
     
 private:
@@ -128,5 +137,17 @@ private:
     
 //    Sustain pedal
     bool sustainPedalPressed;
+    
+//    Legato playing. Continues the envelope and
+//    only changes the pitch of the tone
+    void restartMonoVoice(int note, int velocity);
+    
+//    Last note priority. Shifts all the queued notes
+//    one position down while holding them all.
+    void shiftQueuedNotes();
+    
+//    Last note priority. Jump to the previous note when
+//    the actual was released.
+    int nextQueuedNote();
     
 };

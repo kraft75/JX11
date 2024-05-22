@@ -475,7 +475,21 @@ void JX11AudioProcessor::update()
 //    current value to this new target.
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
 
+//    --------------------------------------------------------------------------
+//    Modulation / Sensitivity
+//    --------------------------------------------------------------------------
+    
 //==============================================================================
+    float filterVelocity = filterVelocityParam->get();
+//    Changes the dynamic range of the sound to 0 dB
+    if (filterVelocity < -90.0f) {
+//        Sets ignoreVelocity to true when the parameter says OFF. 
+        synth.velocitySensitivity = 0.0f;
+        synth.ignoreVelocity = true;
+    } else {
+        synth.velocitySensitivity = 0.0005f * filterVelocity;
+        synth.ignoreVelocity = false;
+    }
 }
 
 void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
