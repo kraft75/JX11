@@ -16,6 +16,12 @@
     
     Other algorithms on p. 145
  
+    Vibrato: We multiply the pitch by a sine wave that slowly oscillates between 0.95 and 1.05,
+    to get the modulated sawtooth wave.
+    One way to achieve vibrato is to change the period variable using the LFO.
+    However, it’s cleaner to not apply the modulations to the period directly but use
+    a new variable for this.
+
   ==============================================================================
 */
 
@@ -49,6 +55,9 @@ class Oscillator {
 public:
     float period = 0.0f;
     float amplitude = 1.0f;
+//    Current amount of modulation to be applied to the period.
+//    1.0f means no vibrato.
+    float modulation = 1.0f;
     
     void reset()
     {
@@ -80,7 +89,7 @@ public:
 //            Find the midpoint between the finished and new peak.
 //            To keep things simple, the oscillator ignores any changes
 //            to period until it starts the next cycle.
-            float halfPeriod = period / 2.0f;
+            float halfPeriod = period / 2.0f * modulation;
             
 //            phaseMax variable holds the position of the midpoint
 //            between the two impulse peaks expressed in samples.

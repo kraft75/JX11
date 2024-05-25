@@ -119,8 +119,21 @@ public:
 //    towards the amplitude off.
     bool ignoreVelocity;
     
+//    The update rate for the LFO is once every 32 samples.
+    const int LFO_MAX = 32;
+//    Phase increment for the LFO (0-2PI)
+    float lfoInc;
+    
+//    Influences the intensity of the vibrato parameter.
+    float vibrato;
     
 private:
+    
+//    ------------------------------------------------------------------
+//    Private member variables
+//    ------------------------------------------------------------------
+
+    
     float sampleRate;
     
     void noteON(int, int);
@@ -129,17 +142,30 @@ private:
 //    Multiple voices for each note playing.
     std::array<Voice, MAX_VOICES>  voices;
     
-//    Mixing noise to the oscillator
+//    Mixing noise to the oscillator.
     NoiseGenerator noiseGen;
     
-//    Mutes the audio for ear protection
+//    Mutes the audio for ear protection.
     Utils earProtect;
     
 //    Sustain pedal
     bool sustainPedalPressed;
     
+//    Counts LFO_MAX down to 0.
+//    Keeping track when to move the LFO forward.
+    int lfoStep;
+//    Contains the current phase of the sine wave
+    float lfo;
+    
+//    ------------------------------------------------------------------
+//    Private member methods
+//    ------------------------------------------------------------------
+
+//    lfoStep countdown happens here.
+    void updateLFO();
+    
 //    Legato playing. Continues the envelope and
-//    only changes the pitch of the tone
+//    only changes the pitch of the tone.
     void restartMonoVoice(int note, int velocity);
     
 //    Last note priority. Shifts all the queued notes

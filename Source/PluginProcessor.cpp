@@ -476,10 +476,9 @@ void JX11AudioProcessor::update()
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
 
 //    --------------------------------------------------------------------------
-//    Modulation / Sensitivity
+//    Modulation (Sensitivity, LFO, Vibrato)
 //    --------------------------------------------------------------------------
-    
-//==============================================================================
+//    Velocity sensitivity
     float filterVelocity = filterVelocityParam->get();
 //    Changes the dynamic range of the sound to 0 dB
     if (filterVelocity < -90.0f) {
@@ -490,7 +489,23 @@ void JX11AudioProcessor::update()
         synth.velocitySensitivity = 0.0005f * filterVelocity;
         synth.ignoreVelocity = false;
     }
+    
+//    LFO
+//    The sample rate for the LFO is 32 times lower than the audio’s sample rate
+    const float inverseUpdateRate = inverseSampleRate * synth.LFO_MAX;
+//    Sets the frequency.
+//    Maps 0 – 1 parameter value to 0.0183 Hz – 20.086 Hz, or roughly 0.02 Hz to 20 Hz.
+    float lfoRate = std::exp(7.0f * lfoRateParam->get() - 4.0f);
+//    inc = freq / sampleRate
+    synth.lfoInc = lfoRate * inverseUpdateRate * float(TWO_PI);
+    
+//    Vibrato
+//    The Vibrato parameter goes between –100% and +100%.
+    float vibrato = vibratoParam->get() / 200.0f;
+//    Vibrato is a parabolic curve from 0% (0) to 100% (0.05).
+    synth.vibrato = .2f * vibrato * vibrato;
 }
+//==============================================================================
 
 void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {

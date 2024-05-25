@@ -35,9 +35,12 @@ void Synth::reset()
     for (int i = 0; i < MAX_VOICES; ++i) {
         voices[i].reset();
     }
+    
     noiseGen.reset();
     pitchBend = 1.0f;
     sustainPedalPressed = false;
+    lfo = 0.0f;
+    lfoStep = 0;
 //    Smoothing time
     outputLevelSmoother.reset(sampleRate, 0.05f);
 }
@@ -63,6 +66,8 @@ void Synth::render(float** outputBuffers, int sampleCount)
 //    Loop thru the samples. If there were MIDI messages
 //    this will be less than the total number of samples in the block.
     for (int sample = 0; sample < sampleCount; ++sample) {
+//        Adding vibrato
+        updateLFO();
 //        Next output from noise generator multiplied by
 //        the parameter noise (noiseMix).
         float noise = noiseGen.nextValue() * noiseMix;
@@ -115,6 +120,45 @@ void Synth::render(float** outputBuffers, int sampleCount)
 //        Mutes the audio for values beyond -2.0f and 2.0f
     earProtect.protectYourEars(outputBufferLeft, sampleCount);
     earProtect.protectYourEars(outputBufferRight, sampleCount);
+}
+
+void Synth::updateLFO() 
+{
+//    Statement is entered every 32 samples
+    if (--lfoStep <= 0) {
+        lfoStep = LFO_MAX;
+        
+//        Increment the LFO’s phase variable lfo.
+        lfo += lfoInc;
+//        When this exceeds PI
+        if (lfo > PI) {
+//            subtract TWO_PI to put lfo back to -PI.
+//            The phase is kept somewhere between ±π
+//            that the argument for std::sin isn't too large.
+            lfo -= TWO_PI;
+        }
+        
+//        Calculate the sine
+        const float sine = std::sin(lfo);
+        
+//        Calculate vibrato amount.
+//        Max value for vibrato is 0.05 and sin changes
+//        between -1 and 1. This makes -0.05 and 0.05.
+//        To achieve the final value of
+//        vibratoMod(0.95 and 1.05) -> 2^−1/12 = 0.9439
+//        2^1/12 = 1.0594. We add 1.0f.
+        float vibratoMod = 1.0f + sine * vibrato;
+        
+//        Add vibrato to modulation
+        for (int v = 0; v < MAX_VOICES; ++v) {
+            Voice& voice = voices[v];
+            if (voice.env.isActive()) {
+                voice.osc1.modulation = vibratoMod;
+                voice.osc2.modulation = vibratoMod;
+            }
+        }
+    }
+    
 }
 //==============================================================================
 
