@@ -22,6 +22,9 @@
     However, it’s cleaner to not apply the modulations to the period directly but use
     a new variable for this.
 
+ 
+    The logic in squareWave sets the starting phase of the second oscillator so that its sinc peaks
+    fall exactly halfway in between two sinc peaks from the first oscillator.
   ==============================================================================
 */
 
@@ -153,5 +156,42 @@ public:
         }
 //        Substract the DC-Offset to avoid clicks and pops.
         return output - dc;
+    }
+    
+//    The squareWave function is used to set the phase of one
+//    oscillator based on the phase of the other oscillator.
+//    This method is called on osc2 when the voice starts
+//    playing a new note.
+    void squareWave(Oscillator& other, float newPeriod)
+    {
+//        In case the osc had been used already,
+        reset();
+        
+//        Figuring out what the phase of the other oscillator is
+//        and in which direction it’s going.
+        if (other.inc > 0.0f) {
+//            phase is set to a value that reflects other.phase
+//            about other.phaseMax. This mirrors the phase value.
+            phase = other.phaseMax + other.phaseMax - other.phase;
+//            Inverting the direction of phase increment.
+            inc = -other.inc;
+        } else if (other.inc < 0.0f) {
+//            Copies the values
+            phase = other.phase;
+            inc = other.inc;
+        } else {
+//            The other oscillator has not started yet,
+//            and there’s no way of knowing where its peaks will be.
+//            Guessing that inc is a value close to PI.
+//            Initializing the phase for a new cycle.
+            phase = -PI;
+//            Which is a standard increment to start the wave.
+            inc = PI;
+        }
+        
+//        Shift the phase by half a period so that we’re halfway
+//        in between the peaks of the other oscillator.
+        phase += PI * newPeriod / 2.0f;
+        phaseMax = phase;
     }
 };

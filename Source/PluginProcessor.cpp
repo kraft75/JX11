@@ -476,9 +476,9 @@ void JX11AudioProcessor::update()
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
 
 //    --------------------------------------------------------------------------
-//    Modulation (Sensitivity, LFO, Vibrato)
+//    Modulation (Sensitivity, LFO, Vibrato, PWM)
 //    --------------------------------------------------------------------------
-//    Velocity sensitivity
+            /*    Velocity sensitivity  */
     float filterVelocity = filterVelocityParam->get();
 //    Changes the dynamic range of the sound to 0 dB
     if (filterVelocity < -90.0f) {
@@ -490,7 +490,7 @@ void JX11AudioProcessor::update()
         synth.ignoreVelocity = false;
     }
     
-//    LFO
+            /*    LFO   */
 //    The sample rate for the LFO is 32 times lower than the audio’s sample rate
     const float inverseUpdateRate = inverseSampleRate * synth.LFO_MAX;
 //    Sets the frequency.
@@ -499,11 +499,19 @@ void JX11AudioProcessor::update()
 //    inc = freq / sampleRate
     synth.lfoInc = lfoRate * inverseUpdateRate * float(TWO_PI);
     
-//    Vibrato
+            /*    Vibrato/PWM  */
 //    The Vibrato parameter goes between –100% and +100%.
     float vibrato = vibratoParam->get() / 200.0f;
 //    Vibrato is a parabolic curve from 0% (0) to 100% (0.05).
     synth.vibrato = .2f * vibrato * vibrato;
+//    Sets the new pwmDepth variable to the value of synth.vibrato.
+    synth.pwmDepth = synth.vibrato;
+    if (vibrato < 0.0f) {
+//        If vibrato is negative,
+//        PWM mode should be used instead of the vibrato effect.
+//        Turning off regular vibrato:
+        synth.vibrato = 0.0f;
+    }
 }
 //==============================================================================
 

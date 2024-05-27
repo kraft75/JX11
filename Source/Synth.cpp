@@ -148,6 +148,9 @@ void Synth::updateLFO()
 //        vibratoMod(0.95 and 1.05) -> 2^−1/12 = 0.9439
 //        2^1/12 = 1.0594. We add 1.0f.
         float vibratoMod = 1.0f + sine * vibrato;
+//        Assigning the intensity for the PWM modulation
+//        in the same way as vibrato.
+        float pwm = 1.0f + sine * pwmDepth;
         
 //        Add vibrato to modulation
         for (int v = 0; v < MAX_VOICES; ++v) {
@@ -180,18 +183,30 @@ void Synth::startVoice(int v, int note, int velocity)
 //    Oscillator settings
 //    ------------------------------------------------------------------
 
-//    Changing the velocity from a linear to a logarithmic curve.
-    float vel = .004f * float((velocity + 64) * (velocity + 64)) - 8.0f;
-    voice.osc1.amplitude = vel * volumeTrim;
-//    No reset. Emulating the behavior of an analogue
-//    hardware.
-//    voice.osc1.reset();
-    voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
-//    voice.osc2.reset();
-    
     voice.period = period;
     voice.note = note;
     voice.updatePanning();
+    
+//    Changing the velocity from a linear to a logarithmic curve.
+    float vel = .004f * float((velocity + 64) * (velocity + 64)) - 8.0f;
+    voice.osc1.amplitude = vel * volumeTrim;
+    voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
+    
+//    If the synth is in PWM mode..
+    if (vibrato == 0.0f && pwmDepth > 0.0f) {
+//        ..the second oscillator will now be phase-locked
+//        to the first one creating a squarewave.
+        voice.osc2.squareWave(voice.osc1, voice.period);
+    }
+
+    
+//    Optional reset of the oscillators.
+//    Emulating the behavior of an analogue
+//    hardware synthesizer.
+//    voice.osc1.reset();
+//    voice.osc2.reset();
+    
+    
 }
 
 void Synth::restartMonoVoice(int note, int velocity)

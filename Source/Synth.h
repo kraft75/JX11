@@ -127,6 +127,9 @@ public:
 //    Influences the intensity of the vibrato parameter.
     float vibrato;
     
+//    Modulation intensity for the PWM effect.
+    float pwmDepth;
+    
 private:
     
 //    ------------------------------------------------------------------
