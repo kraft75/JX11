@@ -136,7 +136,6 @@ private:
 //    Private member variables
 //    ------------------------------------------------------------------
 
-    
     float sampleRate;
     
     void noteON(int, int);
@@ -159,6 +158,11 @@ private:
     int lfoStep;
 //    Contains the current phase of the sine wave
     float lfo;
+    
+//    The mod wheel is used for additional vibrato.
+//    It sends a regular MIDI CC message,
+//    enabling 128 possible positions.
+    float modWheel;
     
 //    ------------------------------------------------------------------
 //    Private member methods

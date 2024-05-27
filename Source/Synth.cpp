@@ -43,6 +43,7 @@ void Synth::reset()
     lfoStep = 0;
 //    Smoothing time
     outputLevelSmoother.reset(sampleRate, 0.05f);
+    modWheel = 0.0f;
 }
 //==============================================================================
 
@@ -147,17 +148,18 @@ void Synth::updateLFO()
 //        To achieve the final value of
 //        vibratoMod(0.95 and 1.05) -> 2^−1/12 = 0.9439
 //        2^1/12 = 1.0594. We add 1.0f.
-        float vibratoMod = 1.0f + sine * vibrato;
+//        Range including modWheel: 0.869 - 1.131.
+        float vibratoMod = 1.0f + sine * (modWheel + vibrato);
 //        Assigning the intensity for the PWM modulation
 //        in the same way as vibrato.
-        float pwm = 1.0f + sine * pwmDepth;
+        float pwm = 1.0f + sine * (modWheel + pwmDepth);
         
 //        Add vibrato to modulation
         for (int v = 0; v < MAX_VOICES; ++v) {
             Voice& voice = voices[v];
             if (voice.env.isActive()) {
                 voice.osc1.modulation = vibratoMod;
-                voice.osc2.modulation = vibratoMod;
+                voice.osc2.modulation = pwm;
             }
         }
     }
@@ -413,6 +415,15 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
             }
             break;
         }
+//            Mod wheel
+        case 0x01: {
+//            Values converted to a parabolic curve in
+//            order to gain more control over small values.
+//            0 maps to 0 and 127 to 0.0806.
+            modWheel = 0.000005f * float(data2 * data2);
+            break;
+        }
+            
 //            PANIC message. Synth stops playing all
 //            notes immediately.
 //            If a note got stuck.
