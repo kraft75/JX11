@@ -476,7 +476,7 @@ void JX11AudioProcessor::update()
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
 
 //    --------------------------------------------------------------------------
-//    Modulation (Sensitivity, LFO, Vibrato, PWM)
+//    Modulation (Sensitivity, LFO, Vibrato, PWM, Glide)
 //    --------------------------------------------------------------------------
             /*    Velocity sensitivity  */
     float filterVelocity = filterVelocityParam->get();
@@ -512,6 +512,23 @@ void JX11AudioProcessor::update()
 //        Turning off regular vibrato:
         synth.vibrato = 0.0f;
     }
+    
+            /*   Glide   */
+    
+//    0=off, 1=legato-style, 2=always
+    synth.glideMode = glideModeParam->getIndex();
+    
+//    glide speed as a percentage. glideRate as
+//    coefficient for one-pole filter.
+    float glideRate = glideRateParam->get();
+    if (glideRate < 2.0f) {
+        synth.glideRate = 1.0f;
+    } else {
+        synth.glideRate = 1.0f - std::exp(-inverseUpdateRate * std::exp(6.0f - 0.07f * glideRate));
+    }
+    
+//    Range: 36 semitones to +36 semitones.
+    synth.glideBend = glideBendParam->get();
 }
 //==============================================================================
 

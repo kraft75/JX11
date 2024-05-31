@@ -44,6 +44,8 @@ void Synth::reset()
 //    Smoothing time
     outputLevelSmoother.reset(sampleRate, 0.05f);
     modWheel = 0.0f;
+//    No flide for the very first note played.
+    lastNote = 0;
 }
 //==============================================================================
 
@@ -59,8 +61,8 @@ void Synth::render(float** outputBuffers, int sampleCount)
         Voice& voice = voices[i];
 //        Check if key is pressed.
         if (voice.env.isActive()) {
-            voice.osc1.period = voice.period * pitchBend;
-            voice.osc2.period = voice.osc1.period * detune;
+            updatePeriod(voice);
+            voice.glideRate = glideRate;
         }
     }
     
@@ -160,12 +162,31 @@ void Synth::updateLFO()
             if (voice.env.isActive()) {
                 voice.osc1.modulation = vibratoMod;
                 voice.osc2.modulation = pwm;
+                
+//                Get the new target period..
+                voice.updateLFO();
+//                ..and update it
+                updatePeriod(voice);
             }
         }
     }
     
 }
 //==============================================================================
+
+bool Synth::isPlayingLegatoStyle() const
+{
+    int held = 0;
+    for (int i = 0; i < MAX_VOICES; ++i) {
+//        This method simply counts how many of the currently playing
+//        voices are for keys that are still held down.
+//        How many voices did not get a Note Off event yet.
+        if (voices[i].note > 0) {
+            held += 1;
+        }
+    }
+    return held > 0;
+}
 
 void Synth::startVoice(int v, int note, int velocity)
 {
@@ -185,7 +206,36 @@ void Synth::startVoice(int v, int note, int velocity)
 //    Oscillator settings
 //    ------------------------------------------------------------------
 
-    voice.period = period;
+    voice.target = period;
+    voice.note = note;
+    
+//    Calculates the distance of the new note
+//    in semitones.
+    int noteDistance = 0;
+    if (lastNote > 0) {
+//        0 -> Skip and noteDistance = 0.
+//        2 -> always
+//        if legato (1) it only happens when more
+//        than on key is pressed.
+        if ((glideMode == 2) || ((glideMode == 1) && isPlayingLegatoStyle())) {
+            noteDistance = note - lastNote;
+
+        }
+    }
+    
+//    Set voice.period to the period to glide from.
+//    Additional semitones from the Glide Bend parameter.
+    voice.period = period * std::pow(1.059463094359f, float(noteDistance) - glideBend);
+    
+//    The period shouldn't be too small.
+    if (voice.period < 6.0f)
+    {
+        voice.period = 6.0f;
+    }
+    
+//    Assign the new note number to voice.note
+//    and lastNote.
+    lastNote = note;
     voice.note = note;
     voice.updatePanning();
     
@@ -203,8 +253,8 @@ void Synth::startVoice(int v, int note, int velocity)
 
     
 //    Optional reset of the oscillators.
-//    Emulating the behavior of an analogue
-//    hardware synthesizer.
+//    No reset emulates the behavior of
+//    an analogue hardware synthesizer.
 //    voice.osc1.reset();
 //    voice.osc2.reset();
     
@@ -216,7 +266,15 @@ void Synth::restartMonoVoice(int note, int velocity)
     float period = calcPeriod(0, note);
     
     Voice& voice = voices[0];
-    voice.period = period;
+    voice.target = period;
+    
+//    If gliding is disabled, it sets voice.period to
+//    the same target value, which will skip the
+//    glide effect.
+    if (glideMode == 0)
+    {
+        voice.period = period;
+    }
     
     voice.env.level += SILENCE + SILENCE;
     voice.note = note;

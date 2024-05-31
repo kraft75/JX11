@@ -130,6 +130,17 @@ public:
 //    Modulation intensity for the PWM effect.
     float pwmDepth;
     
+//    Glide lets you glide between different notes.
+    
+//    Selection between no glide, only when legato or
+//    always.
+    int glideMode;
+//    Speed of the glide.
+    float glideRate;
+//    Adds a slide up or down by a fixed number of semitones.
+//    Used regardless of the glideMode.
+    float glideBend;
+    
 private:
     
 //    ------------------------------------------------------------------
@@ -164,6 +175,11 @@ private:
 //    enabling 128 possible positions.
     float modWheel;
     
+//    Keeping track of the most recent MIDI note
+//    number that was played. It represents the period to start
+//    gliding from.
+    int lastNote;
+    
 //    ------------------------------------------------------------------
 //    Private member methods
 //    ------------------------------------------------------------------
@@ -183,4 +199,14 @@ private:
 //    the actual was released.
     int nextQueuedNote();
     
+//    New period has to be updated.
+    void updatePeriod(Voice& voice)
+    {
+        voice.osc1.period = voice.period * pitchBend;
+        voice.osc2.period = voice.osc1.period * detune;
+    }
+    
+//    Helper metod for glide mode. This checks if
+//    legato-style was chosen.
+    bool isPlayingLegatoStyle() const;
 };

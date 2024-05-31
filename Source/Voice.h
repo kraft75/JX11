@@ -60,10 +60,26 @@ struct Voice {
 
     }
     
-//    Time to release the note
+//    Target value for glide.
+    float target;
+    
+//    The logic for performing the glide
+//    happens in the Voice object.
+//    A copy of Synth’s glideRate variable
+//    so that the voice will be able to access it.
+    float glideRate;
+    
+//    Time to release the note.
     void release()
     {
         env.release();
+    }
+    
+//    This is the one-pole filter formula that creates an
+//    exponential transition curve between the two pitches.
+    void updateLFO()
+    {
+        period += glideRate * (target - period);
     }
     
 //    Get the next sample from the oscillator
