@@ -529,6 +529,14 @@ void JX11AudioProcessor::update()
     
 //    Range: 36 semitones to +36 semitones.
     synth.glideBend = glideBendParam->get();
+    
+//    --------------------------------------------------------------------------
+//    Filter
+//    --------------------------------------------------------------------------
+//    Converting the percentage from 0 – 100% into the range –1.5 to 6.5.
+//    The lower, the more sound get filtered.
+    synth.filterKeyTracking = 0.08f * filterFreqParam->get() - 1.5f;
+
 }
 //==============================================================================
 

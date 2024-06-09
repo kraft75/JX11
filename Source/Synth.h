@@ -141,6 +141,9 @@ public:
 //    Used regardless of the glideMode.
     float glideBend;
     
+//    Moves the cutoff up or down relative to that point.
+    float filterKeyTracking;
+    
 private:
     
 //    ------------------------------------------------------------------

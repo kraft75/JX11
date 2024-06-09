@@ -22,6 +22,7 @@
             file="Source/NoiseGenerator.h"/>
       <FILE id="x760LW" name="Preset.h" compile="0" resource="0" file="Source/Preset.h"/>
       <FILE id="oS59Fc" name="Envelope.h" compile="0" resource="0" file="Source/Envelope.h"/>
+      <FILE id="eiiUbe" name="Filter.h" compile="0" resource="0" file="Source/Filter.h"/>
       <FILE id="uBm17Q" name="Oscillator.h" compile="0" resource="0" file="Source/Oscillator.h"/>
     </GROUP>
   </MAINGROUP>

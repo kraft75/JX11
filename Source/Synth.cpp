@@ -18,6 +18,12 @@ Synth::Synth() : sampleRate(44100.0f) {}
 void Synth::allocateResources(double sampleRate_, int samplesPerBlock)
 {
     sampleRate = static_cast<float>(sampleRate_);
+    
+    for (int i = 0; i < MAX_VOICES; ++i) {
+//        For each voice a filter.
+//        Ccalculating the coefficients with the sample rate.
+        voices[i].filter.sampleRate = sampleRate;
+    }
 }
 //==============================================================================
 
@@ -116,6 +122,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
         Voice& voice = voices[i];
         if (!voice.env.isActive()) {
             voice.env.reset();
+            voice.filter.reset();
         }
     }
     
@@ -156,13 +163,15 @@ void Synth::updateLFO()
 //        in the same way as vibrato.
         float pwm = 1.0f + sine * (modWheel + pwmDepth);
         
+        float filterMod = filterKeyTracking;
+        
 //        Add vibrato to modulation
         for (int v = 0; v < MAX_VOICES; ++v) {
             Voice& voice = voices[v];
             if (voice.env.isActive()) {
                 voice.osc1.modulation = vibratoMod;
                 voice.osc2.modulation = pwm;
-                
+                voice.filterMod = filterMod;
 //                Get the new target period..
                 voice.updateLFO();
 //                ..and update it
@@ -251,6 +260,8 @@ void Synth::startVoice(int v, int note, int velocity)
         voice.osc2.squareWave(voice.osc1, voice.period);
     }
 
+//    Cutoff frequency for each note
+    voice.cutoff = sampleRate / (PI * period);
     
 //    Optional reset of the oscillators.
 //    No reset emulates the behavior of

@@ -17,8 +17,13 @@
 
 #include "Oscillator.h"
 #include "Envelope.h"
+#include "Filter.h"
 
 struct Voice {
+//    Sets the filter’s cutoff based
+//    on the pitch of the note
+    float cutoff;
+    
 //    Register the note and velocity
 //    of the most recently pressed key
     int note;
@@ -43,6 +48,9 @@ struct Voice {
 //    Vice versa higher notes.
     float panLeft, panRight;
     
+//    SVF-filter
+    Filter filter;
+    
 //    On initialization of the plug-in
 //    reset note and velocity
     void reset() {
@@ -57,6 +65,7 @@ struct Voice {
         env.reset();
         panLeft = 0.707f;
         panRight = 0.707f;
+        filter.reset();
 
     }
     
@@ -69,24 +78,43 @@ struct Voice {
 //    so that the voice will be able to access it.
     float glideRate;
     
+//    Saves the value of filterKeyTracking
+    float filterMod;
+    
 //    Time to release the note.
     void release()
     {
         env.release();
     }
     
-//    This is the one-pole filter formula that creates an
-//    exponential transition curve between the two pitches.
+
+//    Updating filter coefficients.
     void updateLFO()
     {
+//       This is the one-pole filter formula that creates an
+//       exponential transition curve between the two pitches.
         period += glideRate * (target - period);
+        
+//        A multiplier that makes cutoff higher or lower.
+//        From exp(-1.5) = 0.22× to exp(6.5) = 665×.
+//        Freq = 18,75% equals the cutoff frequency.
+//        Freq = 33% is on the pitch of the note.
+//        Freq = 90%. No influence of the filter.
+        float modulatedCutoff = cutoff * std::exp(filterMod);
+//        Limit the cutoff to a reasonable range between
+//        30 Hz and 20000 Hz.
+        modulatedCutoff = std::clamp(modulatedCutoff, 30.0f, 20000.0f);
+//        Updating coefficients.
+        filter.updateCoefficients(modulatedCutoff, 0.707f);
     }
     
 //    Get the next sample from the oscillator
     float render(float input) 
     {
+//        Renders both oscillators
         float sample1 = osc1.nextSample();
         float sample2 = osc2.nextSample();
+        
 //        .997f acts like a low-pass filter preventin an offset
 //        Output from second osc is subtracted from the first.
         saw = saw * .997f + sample1 - sample2;
@@ -94,6 +122,10 @@ struct Voice {
 //        Noise added to the oscillator
         float output = saw + input;
         
+//        Filters the output
+        output = filter.render(output);
+        
+//        Envelope curve
         float envelope = env.nextValue();
 
 //        Osc value with noise multiplied
