@@ -262,6 +262,13 @@ void Synth::startVoice(int v, int note, int velocity)
 
 //    Cutoff frequency for each note
     voice.cutoff = sampleRate / (PI * period);
+//    64 is the middle of the velocity range
+//    which results in a multiplier of 1.0.
+//    Same when velocitySensitivity is 0.
+//    Range is 1/24 - 24. It’s  like ±55 semitones.
+//    Up and down by four-and-a-half octaves.
+    voice.cutoff *= std::exp(velocitySensitivity * float(velocity - 64));
+    
     
 //    Optional reset of the oscillators.
 //    No reset emulates the behavior of
@@ -290,6 +297,11 @@ void Synth::restartMonoVoice(int note, int velocity)
     voice.env.level += SILENCE + SILENCE;
     voice.note = note;
     voice.updatePanning();
+    
+    voice.cutoff = sampleRate / (period * PI);
+    if (velocity > 0) {
+        voice.cutoff *= std::exp(velocitySensitivity * float(velocity - 64));
+    }
 
 }
 
