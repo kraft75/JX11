@@ -144,6 +144,9 @@ public:
 //    Moves the cutoff up or down relative to that point.
     float filterKeyTracking;
     
+//    Amount of resonance.
+    float filterQ;
+    
 private:
     
 //    ------------------------------------------------------------------
@@ -182,6 +185,9 @@ private:
 //    number that was played. It represents the period to start
 //    gliding from.
     int lastNote;
+    
+//    Control the amount of resonance with a knob
+    float resonanceCtl;
     
 //    ------------------------------------------------------------------
 //    Private member methods

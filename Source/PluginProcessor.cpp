@@ -454,21 +454,9 @@ void JX11AudioProcessor::update()
 //    --------------------------------------------------------------------------
 //    Volume
 //    --------------------------------------------------------------------------
-//    Volume trim
+//    Volume trim(see Filter)
     
-//    Velocity used to be (velocity / 127) * 0.5
-//    -> 0.5/127 = 0.00394. It's also the value for
-//    oscMix and noiseMix equals 0. Maximum amplitude of a
-//    single voice (-6dB).
-    
-//    oscMix 100%: vT = 0.00384
-//    -> 20 × log10(0.00264/0.00384) = −3.25dB. Two waveforms with
-//    the same amplitude. Therefore, a decrease by -3dB.
-    
-//    oscMix and noiseMix 100%: vt = 0.00084 -> -13dB
-//    Noise makes the perceived sound louder due to more freqs.
-    synth.volumeTrim =
-    0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * 1.5f;
+
     
 //    Total volume
 //    Does a linear interpolation over 0.05 seconds from the
@@ -536,6 +524,24 @@ void JX11AudioProcessor::update()
 //    Converting the percentage from 0 – 100% into the range –1.5 to 6.5.
 //    The lower, the more sound get filtered.
     synth.filterKeyTracking = 0.08f * filterFreqParam->get() - 1.5f;
+    
+//    It creates an exponential curve that starts at
+//    filterQ = 1 and goes up to filterQ = 20.
+    float filterReso = filterResoParam->get() / 100.0f;
+    synth.filterQ = std::exp(3.0f * filterReso);
+    //    Velocity used to be (velocity / 127) * 0.5
+    //    -> 0.5/127 = 0.00394. It's also the value for
+    //    oscMix and noiseMix equals 0. Maximum amplitude of a
+    //    single voice (-6dB).
+        
+    //    oscMix 100%: vT = 0.00384
+    //    -> 20 × log10(0.00264/0.00384) = −3.25dB. Two waveforms with
+    //    the same amplitude. Therefore, a decrease by -3dB.
+        
+    //    oscMix and noiseMix 100%: vt = 0.00084 -> -13dB
+    //    Noise makes the perceived sound louder due to more freqs.
+        synth.volumeTrim =
+        0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * (1.5f - 0.5f * filterReso);
 
 }
 //==============================================================================

@@ -81,6 +81,9 @@ struct Voice {
 //    Saves the value of filterKeyTracking
     float filterMod;
     
+//    Resonance value
+    float filterQ;
+    
 //    Time to release the note.
     void release()
     {
@@ -105,7 +108,7 @@ struct Voice {
 //        30 Hz and 20000 Hz.
         modulatedCutoff = std::clamp(modulatedCutoff, 30.0f, 20000.0f);
 //        Updating coefficients.
-        filter.updateCoefficients(modulatedCutoff, 0.707f);
+        filter.updateCoefficients(modulatedCutoff, filterQ);
     }
     
 //    Get the next sample from the oscillator

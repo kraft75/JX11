@@ -47,10 +47,11 @@ void Synth::reset()
     sustainPedalPressed = false;
     lfo = 0.0f;
     lfoStep = 0;
+    resonanceCtl = 1.0f;
 //    Smoothing time
     outputLevelSmoother.reset(sampleRate, 0.05f);
     modWheel = 0.0f;
-//    No flide for the very first note played.
+//    No glide for the very first note played.
     lastNote = 0;
 }
 //==============================================================================
@@ -69,6 +70,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
         if (voice.env.isActive()) {
             updatePeriod(voice);
             voice.glideRate = glideRate;
+            voice.filterQ = filterQ * resonanceCtl;
         }
     }
     
@@ -502,6 +504,15 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
 //            order to gain more control over small values.
 //            0 maps to 0 and 127 to 0.0806.
             modWheel = 0.000005f * float(data2 * data2);
+            break;
+        }
+//            Resonance
+        case 0x47: {
+//            Maps the position of the controller (0 – 127)
+//            to a linear curve between 1.0 and 5.7 which
+//            add an extra boost to the value from the
+//            Filter Reso parameter.
+            resonanceCtl = 154.0f / float(154 - data2);
             break;
         }
             
