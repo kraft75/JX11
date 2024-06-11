@@ -542,6 +542,10 @@ void JX11AudioProcessor::update()
     //    Noise makes the perceived sound louder due to more freqs.
         synth.volumeTrim =
         0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * (1.5f - 0.5f * filterReso);
+    
+    float filterLFO = filterLFOParam->get() / 100.0f;
+//    Possible values go between 0 and 2.5.
+    synth.filterLFODepth = 2.5f * filterLFO * filterLFO;
 
 }
 //==============================================================================

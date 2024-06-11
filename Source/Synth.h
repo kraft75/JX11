@@ -147,6 +147,10 @@ public:
 //    Amount of resonance.
     float filterQ;
     
+//    This variable holds the LFO modulation
+//    intensity for the filter cutoff.
+    float filterLFODepth;
+    
 private:
     
 //    ------------------------------------------------------------------
@@ -188,6 +192,9 @@ private:
     
 //    Control the amount of resonance with a knob
     float resonanceCtl;
+    
+//    Aftertouch
+    float pressure;
     
 //    ------------------------------------------------------------------
 //    Private member methods

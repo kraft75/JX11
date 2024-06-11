@@ -53,6 +53,7 @@ void Synth::reset()
     modWheel = 0.0f;
 //    No glide for the very first note played.
     lastNote = 0;
+    pressure = 0.0f;
 }
 //==============================================================================
 
@@ -165,7 +166,8 @@ void Synth::updateLFO()
 //        in the same way as vibrato.
         float pwm = 1.0f + sine * (modWheel + pwmDepth);
         
-        float filterMod = filterKeyTracking;
+//      Distance from cutoff and LFO
+        float filterMod = filterKeyTracking + (filterLFODepth + pressure) * sine;
         
 //        Add vibrato to modulation
         for (int v = 0; v < MAX_VOICES; ++v) {
@@ -467,6 +469,14 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
 //            Mapping: –8192 to 8191 into 1.12 – 0.89.
 //            Origin formula: 2^2*(data/8192)/12
             pitchBend = std::exp(-0.000014102f * float(data1 + 128 * data2 - 8192));
+            break;
+        }
+//            Channel aftertouch
+        case 0xD0: {
+//            Additional depth to the LFO.
+//            Maps the pressure value to a parabolic curve
+//            starting at 0.0 (position 0) up to 1.61 (position 127).
+            pressure = 0.0001f * float(data1 * data1);
             break;
         }
 //            Control change
