@@ -196,6 +196,8 @@ private:
 //    Aftertouch
     float pressure;
     
+//    Filter control via MIDI
+    float filterCtl;
 //    ------------------------------------------------------------------
 //    Private member methods
 //    ------------------------------------------------------------------

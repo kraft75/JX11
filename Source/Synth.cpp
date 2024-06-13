@@ -43,17 +43,27 @@ void Synth::reset()
     }
     
     noiseGen.reset();
+    
     pitchBend = 1.0f;
+    
     sustainPedalPressed = false;
+    
     lfo = 0.0f;
     lfoStep = 0;
+    
     resonanceCtl = 1.0f;
+    
 //    Smoothing time
     outputLevelSmoother.reset(sampleRate, 0.05f);
+    
     modWheel = 0.0f;
 //    No glide for the very first note played.
+    
     lastNote = 0;
+    
     pressure = 0.0f;
+    
+    filterCtl = 0.0f;
 }
 //==============================================================================
 
@@ -72,6 +82,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
             updatePeriod(voice);
             voice.glideRate = glideRate;
             voice.filterQ = filterQ * resonanceCtl;
+            voice.pitchBend = pitchBend;
         }
     }
     
@@ -167,7 +178,7 @@ void Synth::updateLFO()
         float pwm = 1.0f + sine * (modWheel + pwmDepth);
         
 //      Distance from cutoff and LFO
-        float filterMod = filterKeyTracking + (filterLFODepth + pressure) * sine;
+        float filterMod = filterKeyTracking + filterCtl + (filterLFODepth + pressure) * sine;
         
 //        Add vibrato to modulation
         for (int v = 0; v < MAX_VOICES; ++v) {
@@ -523,6 +534,18 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
 //            add an extra boost to the value from the
 //            Filter Reso parameter.
             resonanceCtl = 154.0f / float(154 - data2);
+            break;
+        }
+//            Filter in positive direction.
+//            Turns cutoff higher.
+        case 0x4A: {
+            filterCtl = .02f * float(data2);
+            break;
+        }
+//            Filter in negative direction.
+//            Turns cutoff lower:
+        case 0x4B: {
+            filterCtl = -.03f * float(data2);
             break;
         }
             

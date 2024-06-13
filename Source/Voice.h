@@ -84,6 +84,9 @@ struct Voice {
 //    Resonance value
     float filterQ;
     
+//    Amount of pitch bend in the filter modulation.
+    float pitchBend;
+    
 //    Time to release the note.
     void release()
     {
@@ -103,7 +106,7 @@ struct Voice {
 //        Freq = 18,75% equals the cutoff frequency.
 //        Freq = 33% is on the pitch of the note.
 //        Freq = 90%. No influence of the filter.
-        float modulatedCutoff = cutoff * std::exp(filterMod);
+        float modulatedCutoff = cutoff * std::exp(filterMod) / pitchBend;
 //        Limit the cutoff to a reasonable range between
 //        30 Hz and 20000 Hz.
         modulatedCutoff = std::clamp(modulatedCutoff, 30.0f, 20000.0f);
