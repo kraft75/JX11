@@ -198,6 +198,9 @@ private:
     
 //    Filter control via MIDI
     float filterCtl;
+    
+//    Smoother to remove zipper noise
+    float filterZip;
 //    ------------------------------------------------------------------
 //    Private member methods
 //    ------------------------------------------------------------------

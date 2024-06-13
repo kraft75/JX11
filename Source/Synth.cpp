@@ -64,6 +64,8 @@ void Synth::reset()
     pressure = 0.0f;
     
     filterCtl = 0.0f;
+    
+    filterZip = 0.0f;
 }
 //==============================================================================
 
@@ -180,13 +182,16 @@ void Synth::updateLFO()
 //      Distance from cutoff and LFO
         float filterMod = filterKeyTracking + filterCtl + (filterLFODepth + pressure) * sine;
         
-//        Add vibrato to modulation
+//        Smoothed version of filterMod.
+        filterZip += 0.005f * (filterMod - filterZip);
+        
+//        Add vibrato to modulation.
         for (int v = 0; v < MAX_VOICES; ++v) {
             Voice& voice = voices[v];
             if (voice.env.isActive()) {
                 voice.osc1.modulation = vibratoMod;
                 voice.osc2.modulation = pwm;
-                voice.filterMod = filterMod;
+                voice.filterMod = filterZip;
 //                Get the new target period..
                 voice.updateLFO();
 //                ..and update it
