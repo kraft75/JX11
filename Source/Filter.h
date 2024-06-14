@@ -185,7 +185,7 @@
 
 #pragma once
 
-class Filter {
+class Filter : public juce::dsp::LadderFilter<float> {
     const float PI = 3.1415926535897932f;
 //  Filter coefficients.
     float g, k, a1, a2, a3;
@@ -199,6 +199,7 @@ public:
 //    resonance results in a re-calculation of
 //    the filter’s coefficients.
     void updateCoefficients(float cutoff, float Q) {
+        /* JX11 Version
         g = std::tan(PI * cutoff / sampleRate);
         
 //        k determines how peaky or broad the filter's
@@ -217,6 +218,11 @@ public:
 //        a3 determines how much influence the current
 //        input sample has on the second integrator's output.
         a3 = g * a2;
+         */
+        
+//      Ladder Moog filter
+        setCutoffFrequencyHz(cutoff);
+        setResonance(Q / 30);
     }
     
     void reset() {
@@ -232,6 +238,7 @@ public:
 //    The render method takes an input sample x and processes it
 //    through the SVF algorithm to produce a filtered output.
     float render(float x) {
+        /* JX 11 Version
         float v3 = x - ic2eq;
 //        v1 represents the output of the first integrator.
 //        This line combines the state of the first integrator
@@ -247,8 +254,13 @@ public:
 //      the current state of the filter after processing the input.
         ic1eq = 2.0f * v1 - ic1eq; // First integrator
         ic2eq = 2.0f * v2 - ic2eq; // Second integrator
-        
         return v2;
+         */
+        
+//        Ladder Moog filter
+        updateSmoothers();
+        float sample = processSample(x, getNumChannels());
+        return sample;
     }
 
 };

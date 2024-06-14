@@ -19,10 +19,23 @@ void Synth::allocateResources(double sampleRate_, int samplesPerBlock)
 {
     sampleRate = static_cast<float>(sampleRate_);
     
+//    Ladder Moog filter
+    
+//    It is used to define the configuration settings for DSP operations
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = sampleRate;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = 1;
+    
     for (int i = 0; i < MAX_VOICES; ++i) {
+        /* JX11 Version
 //        For each voice a filter.
 //        Ccalculating the coefficients with the sample rate.
+        
         voices[i].filter.sampleRate = sampleRate;
+         */
+        voices[i].filter.setMode(juce::dsp::LadderFilterMode::LPF24);
+        voices[i].filter.prepare(spec);
     }
 }
 //==============================================================================
