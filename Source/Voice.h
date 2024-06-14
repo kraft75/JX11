@@ -51,24 +51,6 @@ struct Voice {
 //    SVF-filter
     Filter filter;
     
-//    On initialization of the plug-in
-//    reset note and velocity
-    void reset() {
-        note = 0;
-//        Reseting osc objects is optional.
-//        Mimicking an analogue hardware
-//        synthesizer should exclude a
-//        reset.
-        osc1.reset();
-        osc2.reset();
-        saw = 0.0f;
-        env.reset();
-        panLeft = 0.707f;
-        panRight = 0.707f;
-        filter.reset();
-
-    }
-    
 //    Target value for glide.
     float target;
     
@@ -84,13 +66,36 @@ struct Voice {
 //    Resonance value
     float filterQ;
     
+//    Adding filter envelopes.
+    Envelope filterEnv;
+    float filterEnvDepth;
+    
 //    Amount of pitch bend in the filter modulation.
     float pitchBend;
+    
+//    On initialization of the plug-in
+//    reset note and velocity
+    void reset() {
+        note = 0;
+//        Reseting osc objects is optional.
+//        Mimicking an analogue hardware
+//        synthesizer should exclude a
+//        reset.
+        osc1.reset();
+        osc2.reset();
+        saw = 0.0f;
+        env.reset();
+        panLeft = 0.707f;
+        panRight = 0.707f;
+        filter.reset();
+        filterEnv.reset();
+    }
     
 //    Time to release the note.
     void release()
     {
         env.release();
+        filterEnv.release();
     }
     
 
@@ -101,12 +106,16 @@ struct Voice {
 //       exponential transition curve between the two pitches.
         period += glideRate * (target - period);
         
+//        Gets the filter envelope’s current level (0 - 1).
+        float fenv = filterEnv.nextValue();
+        
 //        A multiplier that makes cutoff higher or lower.
 //        From exp(-1.5) = 0.22× to exp(6.5) = 665×.
 //        Freq = 18,75% equals the cutoff frequency.
 //        Freq = 33% is on the pitch of the note.
 //        Freq = 90%. No influence of the filter.
-        float modulatedCutoff = cutoff * std::exp(filterMod) / pitchBend;
+//        Multiply by filter env.
+        float modulatedCutoff = cutoff * std::exp(filterMod + filterEnvDepth * fenv) / pitchBend;
 //        Limit the cutoff to a reasonable range between
 //        30 Hz and 20000 Hz.
         modulatedCutoff = std::clamp(modulatedCutoff, 30.0f, 20000.0f);

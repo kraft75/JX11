@@ -151,6 +151,14 @@ public:
 //    intensity for the filter cutoff.
     float filterLFODepth;
     
+//    Filter eevelope multipliers.
+    float filterAttack;
+    float filterDecay;
+    float filterSustain;
+    float filterRelease;
+//    Modulation intensity for the envelope.
+    float filterEnvDepth;
+    
 private:
     
 //    ------------------------------------------------------------------

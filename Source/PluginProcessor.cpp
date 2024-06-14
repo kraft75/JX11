@@ -546,6 +546,19 @@ void JX11AudioProcessor::update()
     float filterLFO = filterLFOParam->get() / 100.0f;
 //    Possible values go between 0 and 2.5.
     synth.filterLFODepth = 2.5f * filterLFO * filterLFO;
+    
+//    Filter envelopes
+    synth.filterAttack = std::exp(-inverseUpdateRate *
+                                    std::exp(5.5f - 0.075f * filterAttackParam->get()));
+    synth.filterDecay = std::exp(-inverseUpdateRate *
+                                    std::exp(5.5f - 0.075f * filterDecayParam->get()));
+    float filterSustain = filterSustainParam->get() / 100.0f;
+    synth.filterSustain = filterSustain * filterSustain;
+    synth.filterRelease = std::exp(-inverseUpdateRate *
+                                    std::exp(5.5f - 0.075f * filterReleaseParam->get()));
+//    Intensity of the envelope modulation.
+//    Range from –100% to 100% mapping to –6.0 and +6.0.
+    synth.filterEnvDepth = 0.06f * filterEnvParam->get();
 
 }
 //==============================================================================

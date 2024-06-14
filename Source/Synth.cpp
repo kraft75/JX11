@@ -85,6 +85,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
             voice.glideRate = glideRate;
             voice.filterQ = filterQ * resonanceCtl;
             voice.pitchBend = pitchBend;
+            voice.filterEnvDepth = filterEnvDepth;
         }
     }
     
@@ -224,6 +225,7 @@ void Synth::startVoice(int v, int note, int velocity)
     
 //    Settings of the envelope attributes
 //    ------------------------------------------------------------------
+//    Amplitude
     Envelope& env = voice.env;
     env.attackMultiplier = envAttack;
     env.decayMultiplier = envDecay;
@@ -231,6 +233,14 @@ void Synth::startVoice(int v, int note, int velocity)
     env.releaseMultiplier = envRelease;
 //    Setting private members level and target
     env.attack();
+    
+//    Filter
+    Envelope& filterEnv = voice.filterEnv;
+    filterEnv.attackMultiplier = filterAttack;
+    filterEnv.decayMultiplier = filterDecay;
+    filterEnv.sustainLevel = filterSustain;
+    filterEnv.releaseMultiplier = filterRelease;
+    filterEnv.attack();
 //    ------------------------------------------------------------------
 //    Oscillator settings
 //    ------------------------------------------------------------------
@@ -279,7 +289,9 @@ void Synth::startVoice(int v, int note, int velocity)
 //        to the first one creating a squarewave.
         voice.osc2.squareWave(voice.osc1, voice.period);
     }
-
+//    ------------------------------------------------------------------
+//    Filter  settings
+//    ------------------------------------------------------------------
 //    Cutoff frequency for each note
     voice.cutoff = sampleRate / (PI * period);
 //    64 is the middle of the velocity range
@@ -288,6 +300,8 @@ void Synth::startVoice(int v, int note, int velocity)
 //    Range is 1/24 - 24. It’s  like ±55 semitones.
 //    Up and down by four-and-a-half octaves.
     voice.cutoff *= std::exp(velocitySensitivity * float(velocity - 64));
+    
+    
     
     
 //    Optional reset of the oscillators.
