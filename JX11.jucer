@@ -24,6 +24,10 @@
       <FILE id="oS59Fc" name="Envelope.h" compile="0" resource="0" file="Source/Envelope.h"/>
       <FILE id="eiiUbe" name="Filter.h" compile="0" resource="0" file="Source/Filter.h"/>
       <FILE id="uBm17Q" name="Oscillator.h" compile="0" resource="0" file="Source/Oscillator.h"/>
+      <FILE id="gVrW1a" name="RotaryKnob.h" compile="0" resource="0" file="Source/RotaryKnob.h"/>
+      <FILE id="jx3NIx" name="RotaryKnob.cpp" compile="1" resource="0" file="Source/RotaryKnob.cpp"/>
+      <FILE id="IEV2ss" name="LookAndFeel.cpp" compile="1" resource="0" file="Source/LookAndFeel.cpp"/>
+      <FILE id="VqR94s" name="LookAndFeel.h" compile="0" resource="0" file="Source/LookAndFeel.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>
