@@ -12,10 +12,17 @@
 
 LookAndFeel::LookAndFeel() 
 {
-    setColour(juce::ResizableWindow::backgroundColourId, juce::Colour(30, 60, 90));
+//    Slider
+    setColour(juce::ResizableWindow::backgroundColourId, juce::Colour(188, 198, 204));
     setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colour(0, 0, 0));
-    setColour(juce::Slider::rotarySliderFillColourId, juce::Colour(90, 180, 240));
-    setColour(juce::Slider::thumbColourId, juce::Colour(255, 255, 255));
+    setColour(juce::Slider::rotarySliderFillColourId, juce::Colours::orange);
+    setColour(juce::Slider::thumbColourId, juce::Colours::orange);
+//    Button
+    setColour(juce::TextButton::buttonColourId, juce::Colour(15, 30, 45));
+    setColour(juce::TextButton::buttonOnColourId, juce::Colours::orange);
+    setColour(juce::TextButton::textColourOffId, juce::Colour(180, 180, 180));
+    setColour(juce::TextButton::textColourOnId, juce::Colour(255, 255, 255));
+    setColour(juce::ComboBox::outlineColourId, juce::Colour(180, 180, 180));
 }
 
 void LookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,
@@ -29,7 +36,7 @@ void LookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, i
 
     auto radius = juce::jmin (bounds.getWidth(), bounds.getHeight()) / 2.0f;
     auto toAngle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-    auto lineW = juce::jmin (8.0f, radius * 0.5f);
+    auto lineW = juce::jmin (8.0f, radius * 0.1f);
     auto arcRadius = radius - lineW * 0.5f;
     
 
@@ -68,13 +75,11 @@ void LookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, i
     }
     
 //    Create Thumb of the dial.
-    auto thumbWidth = lineW * 2.0f;
-    juce::Point<float> thumbPoint (bounds.getCentreX() + arcRadius * std::cos (toAngle - juce::MathConstants<float>::halfPi),
-                             bounds.getCentreY() + arcRadius * std::sin (toAngle - juce::MathConstants<float>::halfPi));
+    juce::Point<float> thumbPoint (bounds.getCentreX() + (arcRadius - 10.0f) * std::cos (toAngle - juce::MathConstants<float>::halfPi),
+        bounds.getCentreY() + (arcRadius- 10.0f) * std::sin (toAngle - juce::MathConstants<float>::halfPi));
 //    Color of the point.
     g.setColour (slider.findColour (juce::Slider::thumbColourId));
 //    Drawing a circle:
-//    g.fillEllipse (juce::Rectangle<float> (thumbWidth, thumbWidth).withCentre (thumbPoint));
 //    Drawing a pointer from the center of the arc to the thumb
     g.drawLine(backgroundArc.getBounds().getCentreX(), backgroundArc.getBounds().getCentreY(), thumbPoint.getX(), thumbPoint.getY(), lineW);
 }

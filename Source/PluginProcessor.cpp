@@ -246,6 +246,14 @@ void JX11AudioProcessor::createPrograms()
    presets.emplace_back("Squelchy Frog", 50.00f, -5.00f, -7.90f, 2.00f, 77.00f, -36.00f, 40.00f, 65.00f, 90.00f, 0.00f, 0.00f, 33.00f, 50.00f, 0.00f, 25.00f, 0.00f, 70.00f, 65.00f, 18.00f, 0.32f, 100.00f, 0.00f, -2.00f, 0.00f, 0.00f, 1.00f);
 }
 
+std::vector<std::string> JX11AudioProcessor::getPresetNames() const
+{
+    std::vector<std::string> names;
+    for (const auto& preset : presets) {
+        names.push_back(preset.name);
+    }
+    return names;
+}
 //==============================================================================
 void JX11AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {

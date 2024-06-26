@@ -12,11 +12,15 @@
 #include "PluginProcessor.h"
 #include "RotaryKnob.h"
 #include "LookAndFeel.h"
+#include "Preset.h"
+#include "Scrollable.h"
 
 //==============================================================================
 /**
 */
-class JX11AudioProcessorEditor : public juce::AudioProcessorEditor
+class JX11AudioProcessorEditor : public juce::AudioProcessorEditor,
+                                 public juce::Button::Listener,
+                                 public juce::ComboBox::Listener
 {
 public:
     JX11AudioProcessorEditor (JX11AudioProcessor&);
@@ -27,14 +31,30 @@ public:
     void paint (juce::Graphics&) override;
 //    Doing the layout of those contents.
     void resized() override;
+    
+//    Toggles the button text when pressed.
+    void buttonClicked(juce::Button* button) override;
+    
+//    Reacts when a new preset is selected.
+    void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
+    
+//    Updating the slider values based on the selected preset.
+//    This method will retrieve the preset data from the audio processor
+//    and apply it to the sliders.
+    void applyPreset(int presetIndex);
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
+    
     JX11AudioProcessor& audioProcessor;
+    
+    juce::ComboBox presetSelector;
+
+//    For scrolling the editor.
+    juce::Viewport viewPort;
     
 //    Custom Design of UI elements
     LookAndFeel globalLNF;
+    
     
 //    Knob for controlling the synth’s parameters.
     RotaryKnob outputLevelKnob;
@@ -48,6 +68,7 @@ private:
     RotaryKnob oscFineKnob;
     RotaryKnob glideRateKnob;
     RotaryKnob glideBendKnob;
+    RotaryKnob glideModeKnob;
     RotaryKnob filterAttackKnob;
     RotaryKnob filterDecayKnob;
     RotaryKnob filterSustainKnob;
@@ -64,8 +85,31 @@ private:
 
 //    Toggle buttons between Poly and Mono mode
     juce::TextButton polyModeButton;
-    juce::TextButton glideModeButton;
+//    Track the text mode.
+       bool isPolyMode;
+//    Labels / Areas for aggregation of the knob types
+    juce::Label oscillatorLabel;
+    juce::Rectangle<int> oscArea;
     
+    juce::Rectangle<int> filterArea;
+    juce::Label filterLabel;
+    
+    juce::Rectangle<int> fenvArea;
+    juce::Label fenvLabel;
+    
+    juce::Rectangle<int> envArea;
+    juce::Label envLabel;
+    
+    juce::Rectangle<int> modArea;
+    juce::Label modLabel;
+    
+    juce::Rectangle<int> outArea;
+    juce::Label outLabel;
+    
+    juce::Rectangle<int> polyArea;
+    juce::Label polyLabel;
+    
+    juce::Label presetLabel;
 //    Attachment object between a parameter from the APVTS and a slider/button.
     using APVTS = juce::AudioProcessorValueTreeState;
     using SliderAttachment = APVTS::SliderAttachment;
@@ -114,6 +158,9 @@ private:
     SliderAttachment glideBendAttachment { audioProcessor.apvts, ParameterID::glideBend.getParamID(),
         glideBendKnob.slider};
     
+    SliderAttachment glideModeAttachment { audioProcessor.apvts, ParameterID::glideMode.getParamID(),
+        glideModeKnob.slider};
+    
     SliderAttachment envAttackAttachment { audioProcessor.apvts, ParameterID::envAttack.getParamID(),
         envAttackKnob.slider};
     
@@ -142,8 +189,10 @@ private:
     ButtonAttachment polyModeAttachment {audioProcessor.apvts, ParameterID::polyMode.getParamID(),
         polyModeButton};
     
-    ButtonAttachment glideModeAttachment {audioProcessor.apvts, ParameterID::glideMode.getParamID(),
-        glideModeButton};
+   
+
+    
+    
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JX11AudioProcessorEditor)

@@ -101,6 +101,12 @@ public:
 //    Save/restore plug-in state. Eases connection with GUI.
 //    Adding the instance apvts.
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Parameters", createParameterLayout()};
+    
+//    Linking Processor and Editor in order to show the presets in
+//    the customized GUI.
+    const std::vector<Preset>& getPresets() const { return presets; }
+    std::vector<std::string> getPresetNames() const;
+//    int getPreset()
 
 private:
     //==============================================================================

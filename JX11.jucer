@@ -28,6 +28,8 @@
       <FILE id="jx3NIx" name="RotaryKnob.cpp" compile="1" resource="0" file="Source/RotaryKnob.cpp"/>
       <FILE id="IEV2ss" name="LookAndFeel.cpp" compile="1" resource="0" file="Source/LookAndFeel.cpp"/>
       <FILE id="VqR94s" name="LookAndFeel.h" compile="0" resource="0" file="Source/LookAndFeel.h"/>
+      <FILE id="v6r4PX" name="Scrollable.h" compile="0" resource="0" file="Source/Scrollable.h"/>
+      <FILE id="xskKgS" name="Scrollable.cpp" compile="1" resource="0" file="Source/Scrollable.cpp"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>

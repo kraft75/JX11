@@ -1,19 +1,19 @@
 /*
   ==============================================================================
 
-    This file contains the basic framework code for a JUCE plugin editor.
+    Scrollable.cpp
+    Created: 24 Jun 2024 3:18:33pm
+    Author:  MacJay
 
   ==============================================================================
 */
 
-#include "PluginProcessor.h"
-#include "PluginEditor.h"
+#include <JuceHeader.h>
+#include "Scrollable.h"
 
 //==============================================================================
-JX11AudioProcessorEditor::JX11AudioProcessorEditor (JX11AudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), isPolyMode(false) 
-{   
-//    Makes it a rotary slider.
+Scrollable::Scrollable()
+{
     outputLevelKnob.label = "Level";
     filterResoKnob.label = "Reso";
     oscMixKnob.label = "Osc Mix";
@@ -40,11 +40,10 @@ JX11AudioProcessorEditor::JX11AudioProcessorEditor (JX11AudioProcessor& p)
     octaveKnob.label = "Octave";
     tuningKnob.label = "Tuning";
 
-//    polyModeButton.setButtonText("Poly");
-    polyModeButton.setButtonText(isPolyMode ? "Mono" : "Poly");
+    polyModeButton.setButtonText("Poly");
     polyModeButton.setClickingTogglesState(true);
-    polyModeButton.addListener(this);
-    
+    polyModeButton.setButtonText("Mono");
+    polyModeButton.setClickingTogglesState(true);
     
 //    Put it into the editor window.
     addAndMakeVisible(outputLevelKnob);
@@ -107,69 +106,30 @@ JX11AudioProcessorEditor::JX11AudioProcessorEditor (JX11AudioProcessor& p)
     outLabel.setJustificationType(juce::Justification::centredTop);
     outLabel.setFont(juce::Font(15.0f, juce::Font::bold));
     addAndMakeVisible(outLabel);
-    
-    polyLabel.setText("Polyphony", juce::dontSendNotification);
-    polyLabel.setFont(juce::Font(15.0f, juce::Font::bold));
-    polyLabel.setJustificationType(juce::Justification::centredLeft);
-    addAndMakeVisible(polyLabel);
 
 
-//    Enabling the look-and-feel class.
-    juce::LookAndFeel::setDefaultLookAndFeel(&globalLNF);
-    addAndMakeVisible(viewPort);
-    
-//    Fetch preset names from audioProcessor as
-//    std::vector<std::string>
-    std::vector<std::string> presetNames = audioProcessor.getPresetNames();
-    
-//    Convert std::vector<std::string> to StringArray
-    juce::StringArray presetNamesArray;
-    for (const auto& name : presetNames) {
-        presetNamesArray.add(name);
-    }
-
-//    Use StringArray with addItemList() in your GUI component (presetSelector)
-    presetSelector.addItemList(presetNamesArray, 1);
-    
-    presetLabel.setText("Presets", juce::dontSendNotification);
-    presetLabel.setJustificationType(juce::Justification::centredTop);
-    presetLabel.setFont(juce::Font(15.0f, juce::Font::bold));
-    addAndMakeVisible(presetLabel);
-//    Register presetSelector as a listener
-    presetSelector.addListener(this);
-    addAndMakeVisible(presetSelector);
-    
-    setSize (600, 800);
 }
 
-JX11AudioProcessorEditor::~JX11AudioProcessorEditor()
+Scrollable::~Scrollable()
 {
-    juce::LookAndFeel::setDefaultLookAndFeel(nullptr);
-    polyModeButton.removeListener(this); 
 }
 
-//==============================================================================
-void JX11AudioProcessorEditor::paint (juce::Graphics& g)
-{
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-}
-
-void JX11AudioProcessorEditor::resized()
+void Scrollable::paint (juce::Graphics& g)
 {
     
-//      Define margins and spacing
+}
+
+void Scrollable::resized()
+{
     const int margin = 10;
     const int labelHeight = 20;
     const int knobWidth = 90;
     const int knobHeight = 120;
     const int buttonHeight = 30;
     const int buttonWidth = 60;
-    const int presetHeight = 30;
-    const int presetWidth = 100;
     const int spacing = 10;
    
-   // Create a working area within the editor window with margins
+// Create a working area within the editor window with margins
     auto bounds = getLocalBounds().reduced(margin);
 
 //    Oscillator
@@ -212,64 +172,15 @@ void JX11AudioProcessorEditor::resized()
     glideBendKnob.setBounds(modArea.removeFromLeft(knobWidth).reduced(spacing));
     lfoRateKnob.setBounds(modArea.removeFromLeft(knobWidth).reduced(spacing));
     vibratoKnob.setBounds(modArea.removeFromLeft(knobWidth).reduced(spacing));
-     
-//    Master Volume
-//    x- and y-coordinates for the outputLevelKnob.
+        
     int outputLevelKnobX = envReleaseKnob.getRight() - (3 * spacing) +
                             (2 * envReleaseKnob.getWidth());
     int outputLevelKnobY = envReleaseKnob.getY();
-//    Positioning
-    outArea = juce::Rectangle<int>(outputLevelKnobX, outputLevelKnobY - labelHeight,
-                    envReleaseKnob.getWidth(), envReleaseKnob.getHeight() + labelHeight);
+
+    outArea = juce::Rectangle<int>(outputLevelKnobX, outputLevelKnobY - labelHeight, envReleaseKnob.getWidth(), envReleaseKnob.getHeight() + labelHeight);
     outLabel.setBounds(outArea.removeFromTop(labelHeight));
     outputLevelKnob.setBounds(outArea);
-    
-//    Polyphony
-    polyLabel.setBounds(glideModeKnob.getX(), glideModeKnob.getBottom() + spacing,
-                        knobWidth, labelHeight);
-    polyModeButton.setBounds(polyLabel.getX(), polyLabel.getBottom() + spacing,
-                             buttonWidth, buttonHeight);
-    
-//    Presets
-    int polyLabelX = polyLabel.getRight() - (3 * spacing) +
-                     (2 * envReleaseKnob.getWidth());
-    int polyLabelY = glideBendKnob.getBottom() + spacing;
-    presetLabel.setBounds(polyLabelX, polyLabelY, knobWidth, labelHeight);
-    presetSelector.setBounds(presetLabel.getX(), presetLabel.getBottom() + spacing, presetWidth, presetHeight);
-    
 
-   
+//       polyModeButton.setBounds(rowArea.removeFromLeft(buttonWidth).reduced(spacing));
+       
 }
-
-void JX11AudioProcessorEditor::buttonClicked(juce::Button* button) 
-{
-    if (button == &polyModeButton) {
-//        Toggle the mode and update the button text
-        isPolyMode = !isPolyMode;
-        
-        if (isPolyMode) {
-                polyModeButton.setButtonText("Mono");
-        } else {
-                polyModeButton.setButtonText("Poly");
-        }
-    }
-}
-
-void JX11AudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged)
-{
-    if (comboBoxThatHasChanged == &presetSelector) {
-//        Getting the index of the selected preset.
-        int selectedPresetIndex = presetSelector.getSelectedItemIndex();
-        if (selectedPresetIndex >= 0) {
-//            Let the audioprocessor set the appropiate setting.
-            applyPreset(selectedPresetIndex);
-        }
-    }
-}
-
-void JX11AudioProcessorEditor::applyPreset(int presetIndex) 
-{
-//    It sets the actual preset.
-    audioProcessor.setCurrentProgram(presetIndex);
-}
-
