@@ -14,6 +14,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "RotaryKnob.h"
 
 //==============================================================================
 /*
@@ -26,6 +27,8 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    
+    void setTextValueSuffix(const juce::String& suffix);
     
     juce::Slider slider;
 //    Drawn inside the bounds of the RotaryKnob by

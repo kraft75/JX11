@@ -49,8 +49,13 @@ private:
     
     juce::ComboBox presetSelector;
 
-//    For scrolling the editor.
+//    Creates a scrollable area for the component.
     juce::Viewport viewPort;
+//    Content component that will be scrolled.
+//    The contentComponent holds all the UI elements
+//    and is displayed inside the viewPort.
+    std::unique_ptr<juce::Component> contentComponent;
+
     
 //    Custom Design of UI elements
     LookAndFeel globalLNF;
@@ -189,11 +194,29 @@ private:
     ButtonAttachment polyModeAttachment {audioProcessor.apvts, ParameterID::polyMode.getParamID(),
         polyModeButton};
     
-   
-
+//    Helper functions.
+    
+//    Setting the bounds for a knob.
+    void setKnobBounds(RotaryKnob& knob,
+                       juce::Rectangle<int>& area,
+                       int knobWidth,
+                       int spacing);
+    
+    void setSectionBounds(juce::Label& label,
+                          std::vector<RotaryKnob*>& knobs,
+                          juce::Rectangle<int>& bounds,
+                          int labelHeight,
+                          int knobWidth,
+                          int knobHeight,
+                          int spacing);
+    
+//    Configuration of the labels.
+    void configureLabel(juce::Label& label,
+                        const juce::String& text,
+                        const juce::Justification& justification,
+                        float fontSize,
+                        juce::Font::FontStyleFlags fontStyle);
     
     
-
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JX11AudioProcessorEditor)
+   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JX11AudioProcessorEditor)
 };

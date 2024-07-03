@@ -19,63 +19,68 @@ RotaryKnob::RotaryKnob()
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     
+//    Get the rotary parameters to create customized
+//    radians.
+    auto rotaryParams = slider.getRotaryParameters();
+    rotaryParams.startAngleRadians = 0.0f;
+    rotaryParams.endAngleRadians = 1.5f * juce::MathConstants<float>::pi;
+    slider.setRotaryParameters(rotaryParams);
+    
+//    Defying the slider type
     slider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 100, textBoxHeight);
     addAndMakeVisible(slider);
     
+    
+    
 //    Initial size which can be overridden by the layout code
 //    in its parent component.
-    setBounds(0, 0, 100, 120);
+//    setBounds(0, 0, 100, 120);
 
 }
 
 RotaryKnob::~RotaryKnob()
 {
+    juce::LookAndFeel::setDefaultLookAndFeel(nullptr);
+}
+
+void RotaryKnob::setTextValueSuffix(const juce::String& suffix)
+{
+    slider.setTextValueSuffix(suffix);
 }
 
 void RotaryKnob::paint (juce::Graphics& g)
 {
-    /* This demo code just fills the component's background and
-       draws some placeholder text to get you started.
 
-       You should replace everything in this method with your own
-       drawing code..
-    */
-
-//   clear the background
+//   clear the background.
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
     
+//    Draws the label.
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
-    
     auto bounds = getLocalBounds();
-//    This uses getLocalBounds to find out how large the component is, in particular how
-//   wide, and then it draws the text from the label variable centered at the top.
     g.drawText (label, juce::Rectangle<int>{ 0, 0, bounds.getWidth(), labelHeight },
                 juce::Justification::centred);
     
 //    Drawing an outline around the entire component.
-    g.setColour(juce::Colours::red);
+    g.setColour(juce::Colours::orange);
     g.drawRect(getLocalBounds(), 1);
-    
-    /*
-    g.setColour(juce::Colours::yellow);
-    g.drawRect(0, labelHeight, bounds.getWidth(),
-               bounds.getHeight() - labelHeight - textBoxHeight, 1);
-    g.setColour(juce::Colours::green);
-    g.drawRect(0, 0, bounds.getWidth(), labelHeight, 1);
-     */
+ 
 }
 
 void RotaryKnob::resized()
 {
-    // This method is where you should set the bounds of any child
-    // components that your component contains..
+//    Set the bounds of any child components that your component contains.
     
 //    Getting a juce::Rectangle object with the current width and
 //    height of the RotaryKnob component.
     auto bounds = getLocalBounds();
-//    Extra space at the top in order to set the label.
-    slider.setBounds(0, labelHeight, bounds.getWidth(), bounds.getHeight() - labelHeight);
+    
+//    Define the area for the slider, leaving space for the label.
+    auto sliderArea = bounds.removeFromTop(bounds.getHeight() - labelHeight);
+
+//    Set the slider's bounds with the label space at the top.
+    slider.setBounds(sliderArea.reduced(5));
+
 
 }

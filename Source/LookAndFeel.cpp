@@ -13,7 +13,7 @@
 LookAndFeel::LookAndFeel() 
 {
 //    Slider
-    setColour(juce::ResizableWindow::backgroundColourId, juce::Colour(188, 198, 204));
+    setColour(juce::ResizableWindow::backgroundColourId, juce::Colour(65, 70, 80));
     setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colour(0, 0, 0));
     setColour(juce::Slider::rotarySliderFillColourId, juce::Colours::orange);
     setColour(juce::Slider::thumbColourId, juce::Colours::orange);

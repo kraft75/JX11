@@ -11,9 +11,12 @@
 
 //==============================================================================
 JX11AudioProcessorEditor::JX11AudioProcessorEditor (JX11AudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), isPolyMode(false) 
-{   
-//    Makes it a rotary slider.
+: AudioProcessorEditor (&p), audioProcessor (p), contentComponent(new juce::Component()), isPolyMode(false)
+{
+//    Enabling the look-and-feel class.
+    juce::LookAndFeel::setDefaultLookAndFeel(&globalLNF);
+    
+//    Labels for each knob.
     outputLevelKnob.label = "Level";
     filterResoKnob.label = "Reso";
     oscMixKnob.label = "Osc Mix";
@@ -39,107 +42,119 @@ JX11AudioProcessorEditor::JX11AudioProcessorEditor (JX11AudioProcessor& p)
     noiseKnob.label = "Noise";
     octaveKnob.label = "Octave";
     tuningKnob.label = "Tuning";
-
-//    polyModeButton.setButtonText("Poly");
+    
+//    Setting the suffix for each knob.
+    outputLevelKnob.setTextValueSuffix(" dB");
+    filterResoKnob.setTextValueSuffix(" %");
+    oscMixKnob.setTextValueSuffix(" %");
+    oscTuneKnob.setTextValueSuffix(" semi");
+    oscFineKnob.setTextValueSuffix(" cent");
+    glideRateKnob.setTextValueSuffix(" %");
+    glideBendKnob.setTextValueSuffix(" semi");
+    glideModeKnob.setTextValueSuffix("");
+    filterFreqKnob.setTextValueSuffix(" %");
+    filterEnvKnob.setTextValueSuffix(" %");
+    filterLFOKnob.setTextValueSuffix(" %");
+    filterVelocityKnob.setTextValueSuffix(" %");
+    filterAttackKnob.setTextValueSuffix(" %");
+    filterDecayKnob.setTextValueSuffix(" %");
+    filterSustainKnob.setTextValueSuffix(" %");
+    filterReleaseKnob.setTextValueSuffix(" %");
+    envAttackKnob.setTextValueSuffix(" %");
+    envDecayKnob.setTextValueSuffix(" %");
+    envSustainKnob.setTextValueSuffix(" %");
+    envReleaseKnob.setTextValueSuffix(" %");
+    lfoRateKnob.setTextValueSuffix(" Hz");
+    vibratoKnob.setTextValueSuffix(" %");
+    noiseKnob.setTextValueSuffix(" %");
+    octaveKnob.setTextValueSuffix(" octave");
+    tuningKnob.setTextValueSuffix(" cent");
+    
     polyModeButton.setButtonText(isPolyMode ? "Mono" : "Poly");
     polyModeButton.setClickingTogglesState(true);
     polyModeButton.addListener(this);
     
-    
-//    Put it into the editor window.
-    addAndMakeVisible(outputLevelKnob);
-    addAndMakeVisible(filterResoKnob);
-    addAndMakeVisible(filterFreqKnob);
-    addAndMakeVisible(filterEnvKnob);
-    addAndMakeVisible(filterLFOKnob);
-    addAndMakeVisible(filterVelocityKnob);
-    addAndMakeVisible(filterAttackKnob);
-    addAndMakeVisible(filterDecayKnob);
-    addAndMakeVisible(filterSustainKnob);
-    addAndMakeVisible(filterSustainKnob);
-    
-    addAndMakeVisible(filterReleaseKnob);
-    addAndMakeVisible(envAttackKnob);
-    addAndMakeVisible(envDecayKnob);
-    addAndMakeVisible(envSustainKnob);
-    addAndMakeVisible(envReleaseKnob);
-    addAndMakeVisible(lfoRateKnob);
-    addAndMakeVisible(vibratoKnob);
-    addAndMakeVisible(noiseKnob);
-    addAndMakeVisible(octaveKnob);
-    addAndMakeVisible(tuningKnob);
-    
-    addAndMakeVisible(oscMixKnob);
-    addAndMakeVisible(oscTuneKnob);
-    addAndMakeVisible(oscFineKnob);
-    addAndMakeVisible(glideRateKnob);
-    addAndMakeVisible(glideBendKnob);
-    addAndMakeVisible(glideModeKnob);
-    addAndMakeVisible(polyModeButton);
+//      Add components to the contentComponent.
+    contentComponent->addAndMakeVisible(oscMixKnob);
+    contentComponent->addAndMakeVisible(oscTuneKnob);
+    contentComponent->addAndMakeVisible(oscFineKnob);
+    contentComponent->addAndMakeVisible(filterResoKnob);
+    contentComponent->addAndMakeVisible(filterFreqKnob);
+    contentComponent->addAndMakeVisible(filterEnvKnob);
+    contentComponent->addAndMakeVisible(filterLFOKnob);
+    contentComponent->addAndMakeVisible(filterVelocityKnob);
+    contentComponent->addAndMakeVisible(polyModeButton);
+    contentComponent->addAndMakeVisible(presetSelector);
+    contentComponent->addAndMakeVisible(outputLevelKnob);
+    contentComponent->addAndMakeVisible(filterAttackKnob);
+    contentComponent->addAndMakeVisible(filterDecayKnob);
+    contentComponent->addAndMakeVisible(filterSustainKnob);
+    contentComponent->addAndMakeVisible(filterSustainKnob);
+    contentComponent->addAndMakeVisible(filterReleaseKnob);
+    contentComponent->addAndMakeVisible(envAttackKnob);
+    contentComponent->addAndMakeVisible(envDecayKnob);
+    contentComponent->addAndMakeVisible(envSustainKnob);
+    contentComponent->addAndMakeVisible(envReleaseKnob);
+    contentComponent->addAndMakeVisible(lfoRateKnob);
+    contentComponent->addAndMakeVisible(vibratoKnob);
+    contentComponent->addAndMakeVisible(noiseKnob);
+    contentComponent->addAndMakeVisible(octaveKnob);
+    contentComponent->addAndMakeVisible(tuningKnob);
+    contentComponent->addAndMakeVisible(glideRateKnob);
+    contentComponent->addAndMakeVisible(glideBendKnob);
+    contentComponent->addAndMakeVisible(glideModeKnob);
     
 //    Initialize and add the labels.
-    oscillatorLabel.setText("Oscillator", juce::dontSendNotification);
-    oscillatorLabel.setJustificationType(juce::Justification::centredLeft);
-    oscillatorLabel.setFont(juce::Font(15.0f, juce::Font::bold));
-    addAndMakeVisible(oscillatorLabel);
+    configureLabel(oscillatorLabel, "Oscillator",
+                   juce::Justification::centredLeft, 15.0f, juce::Font::bold);
+    configureLabel(filterLabel, "Filter",
+                   juce::Justification::centredLeft, 15.0f, juce::Font::bold);
+    configureLabel(polyLabel, "Polyphony",
+                   juce::Justification::centredLeft, 15.0f, juce::Font::bold);
+    configureLabel(presetLabel, "Presets",
+                   juce::Justification::centredTop, 15.0f, juce::Font::bold);
+    configureLabel(fenvLabel, "Envelope Filter",
+                   juce::Justification::centredLeft, 15.0f, juce::Font::bold);
+    configureLabel(envLabel, "Envelope Volume",
+                   juce::Justification::centredLeft, 15.0f, juce::Font::bold);
+    configureLabel(modLabel, "Modulation",
+                   juce::Justification::centredLeft, 15.0f, juce::Font::bold);
+    configureLabel(outLabel, "Master",
+                   juce::Justification::centredTop, 15.0f, juce::Font::bold);
     
-    filterLabel.setText("Filter", juce::dontSendNotification);
-    filterLabel.setJustificationType(juce::Justification::centredLeft);
-    filterLabel.setFont(juce::Font(15.0f, juce::Font::bold));
-    addAndMakeVisible(filterLabel);
-    
-    fenvLabel.setText("Envelope Filter", juce::dontSendNotification);
-    fenvLabel.setJustificationType(juce::Justification::centredLeft);
-    fenvLabel.setFont(juce::Font(15.0f, juce::Font::bold));
-    addAndMakeVisible(fenvLabel);
-    
-    envLabel.setText("Envelope Volume", juce::dontSendNotification);
-    envLabel.setJustificationType(juce::Justification::centredLeft);
-    envLabel.setFont(juce::Font(15.0f, juce::Font::bold));
-    addAndMakeVisible(envLabel);
-    
-    modLabel.setText("Modulation", juce::dontSendNotification);
-    modLabel.setJustificationType(juce::Justification::centredLeft);
-    modLabel.setFont(juce::Font(15.0f, juce::Font::bold));
-    addAndMakeVisible(modLabel);
+//      Add labels to the contentComponent.
+    contentComponent->addAndMakeVisible(oscillatorLabel);
+    contentComponent->addAndMakeVisible(filterLabel);
+    contentComponent->addAndMakeVisible(polyLabel);
+    contentComponent->addAndMakeVisible(presetLabel);
+    contentComponent->addAndMakeVisible(envLabel);
+    contentComponent->addAndMakeVisible(modLabel);
+    contentComponent->addAndMakeVisible(outLabel);
+    contentComponent->addAndMakeVisible(fenvLabel);
+    contentComponent->addAndMakeVisible(polyModeButton);
+    contentComponent->addAndMakeVisible(presetSelector);
 
-    outLabel.setText("Master", juce::dontSendNotification);
-    outLabel.setJustificationType(juce::Justification::centredTop);
-    outLabel.setFont(juce::Font(15.0f, juce::Font::bold));
-    addAndMakeVisible(outLabel);
-    
-    polyLabel.setText("Polyphony", juce::dontSendNotification);
-    polyLabel.setFont(juce::Font(15.0f, juce::Font::bold));
-    polyLabel.setJustificationType(juce::Justification::centredLeft);
-    addAndMakeVisible(polyLabel);
-
-
-//    Enabling the look-and-feel class.
-    juce::LookAndFeel::setDefaultLookAndFeel(&globalLNF);
-    addAndMakeVisible(viewPort);
-    
 //    Fetch preset names from audioProcessor as
 //    std::vector<std::string>
     std::vector<std::string> presetNames = audioProcessor.getPresetNames();
-    
 //    Convert std::vector<std::string> to StringArray
     juce::StringArray presetNamesArray;
     for (const auto& name : presetNames) {
         presetNamesArray.add(name);
     }
 
-//    Use StringArray with addItemList() in your GUI component (presetSelector)
+//    Use StringArray with addItemList() in your GUI
+//    component (presetSelector)
     presetSelector.addItemList(presetNamesArray, 1);
-    
-    presetLabel.setText("Presets", juce::dontSendNotification);
-    presetLabel.setJustificationType(juce::Justification::centredTop);
-    presetLabel.setFont(juce::Font(15.0f, juce::Font::bold));
-    addAndMakeVisible(presetLabel);
 //    Register presetSelector as a listener
     presetSelector.addListener(this);
-    addAndMakeVisible(presetSelector);
     
-    setSize (600, 800);
+//    Add the contentComponent to the viewport
+    viewPort.setViewedComponent(contentComponent.get(), true);
+    addAndMakeVisible(viewPort);
+
+//    Set the size of the main editor.
+    setSize (550, 600);
 }
 
 JX11AudioProcessorEditor::~JX11AudioProcessorEditor()
@@ -151,13 +166,14 @@ JX11AudioProcessorEditor::~JX11AudioProcessorEditor()
 //==============================================================================
 void JX11AudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll(juce::Colour(188, 198, 204));
+
 }
 
 void JX11AudioProcessorEditor::resized()
+
 {
-    
+    DBG("Resized called");
 //      Define margins and spacing
     const int margin = 10;
     const int labelHeight = 20;
@@ -169,49 +185,52 @@ void JX11AudioProcessorEditor::resized()
     const int presetWidth = 100;
     const int spacing = 10;
    
-   // Create a working area within the editor window with margins
-    auto bounds = getLocalBounds().reduced(margin);
+
+//    Create a working area within the editor window with margins.
+    viewPort.setBounds(getLocalBounds());
+    
+//    Set the size of the content component to be
+//    larger than the viewport to enable scrolling.
+    contentComponent->setSize(600, 800);
+    
+//       Create a working area within the editor window with margins
+   auto bounds = contentComponent->getLocalBounds().reduced(margin);
+
 
 //    Oscillator
-    oscArea = bounds.removeFromTop(knobHeight + labelHeight);
-    oscillatorLabel.setBounds(oscArea.removeFromTop(labelHeight));
-    oscMixKnob.setBounds(oscArea.removeFromLeft(knobWidth).reduced(spacing));
-    oscTuneKnob.setBounds(oscArea.removeFromLeft(knobWidth).reduced(spacing));
-    oscFineKnob.setBounds(oscArea.removeFromLeft(knobWidth).reduced(spacing));
-    noiseKnob.setBounds(oscArea.removeFromLeft(knobWidth).reduced(spacing));
-    octaveKnob.setBounds(oscArea.removeFromLeft(knobWidth).reduced(spacing));
-    tuningKnob.setBounds(oscArea.removeFromLeft(knobWidth).reduced(spacing));
+    std::vector<RotaryKnob*> oscillatorKnobs = { &oscMixKnob, &oscTuneKnob,
+        &oscFineKnob, &noiseKnob, &octaveKnob, &tuningKnob };
+    setSectionBounds(oscillatorLabel, oscillatorKnobs, bounds, labelHeight,
+                     knobWidth, knobHeight, spacing);
+
+
 //    Filter
-    filterArea = bounds.removeFromTop(knobHeight + labelHeight);
-    filterLabel.setBounds(filterArea.removeFromTop(labelHeight));
-    filterResoKnob.setBounds(filterArea.removeFromLeft(knobWidth).reduced(spacing));
-    filterFreqKnob.setBounds(filterArea.removeFromLeft(knobWidth).reduced(spacing));
-    filterLFOKnob.setBounds(filterArea.removeFromLeft(knobWidth).reduced(spacing));
-    filterVelocityKnob.setBounds(filterArea.removeFromLeft(knobWidth).reduced(spacing));
-    filterEnvKnob.setBounds(filterArea.removeFromLeft(knobWidth).reduced(spacing));
+    std::vector<RotaryKnob*> filterKnobs = { &filterResoKnob, &filterFreqKnob,
+        &filterLFOKnob, &filterVelocityKnob, &filterEnvKnob };
+    setSectionBounds(filterLabel, filterKnobs, bounds, labelHeight,
+                     knobWidth, knobHeight, spacing);
+    
 //    Filter envelope
-    fenvArea = bounds.removeFromTop(knobHeight + labelHeight);
-    fenvLabel.setBounds(fenvArea.removeFromTop(labelHeight));
-    filterAttackKnob.setBounds(fenvArea.removeFromLeft(knobWidth).reduced(spacing));
-    filterDecayKnob.setBounds(fenvArea.removeFromLeft(knobWidth).reduced(spacing));
-    filterSustainKnob.setBounds(fenvArea.removeFromLeft(knobWidth).reduced(spacing));
-    filterReleaseKnob.setBounds(fenvArea.removeFromLeft(knobWidth).reduced(spacing));
+    std::vector<RotaryKnob*> fEnvKnobs = { &filterAttackKnob, &filterDecayKnob,
+        &filterSustainKnob, &filterReleaseKnob };
+    setSectionBounds(fenvLabel, fEnvKnobs, bounds, labelHeight,
+                     knobWidth, knobHeight, spacing);
+
+    
 //    Envelope
-    envArea = bounds.removeFromTop(knobHeight + labelHeight);
-    envLabel.setBounds(envArea.removeFromTop(labelHeight));
-    envAttackKnob.setBounds(envArea.removeFromLeft(knobWidth).reduced(spacing));
-    envDecayKnob.setBounds(envArea.removeFromLeft(knobWidth).reduced(spacing));
-    envSustainKnob.setBounds(envArea.removeFromLeft(knobWidth).reduced(spacing));
-    envReleaseKnob.setBounds(envArea.removeFromLeft(knobWidth).reduced(spacing));
+    std::vector<RotaryKnob*> envKnobs = { &envAttackKnob, &envDecayKnob,
+        &envSustainKnob, &envReleaseKnob };
+    setSectionBounds(envLabel, envKnobs, bounds, labelHeight,
+                     knobWidth, knobHeight, spacing);
+
     
 //    Modulation
-    modArea = bounds.removeFromTop(knobHeight + labelHeight);
-    modLabel.setBounds(modArea.removeFromTop(labelHeight));
-    glideModeKnob.setBounds(modArea.removeFromLeft(knobWidth).reduced(spacing));
-    glideRateKnob.setBounds(modArea.removeFromLeft(knobWidth).reduced(spacing));
-    glideBendKnob.setBounds(modArea.removeFromLeft(knobWidth).reduced(spacing));
-    lfoRateKnob.setBounds(modArea.removeFromLeft(knobWidth).reduced(spacing));
-    vibratoKnob.setBounds(modArea.removeFromLeft(knobWidth).reduced(spacing));
+    std::vector<RotaryKnob*> modKnobs = { &glideModeKnob, &glideRateKnob,
+        &glideBendKnob, &lfoRateKnob, &vibratoKnob };
+    setSectionBounds(modLabel, modKnobs, bounds, labelHeight,
+                     knobWidth, knobHeight, spacing);
+
+    
      
 //    Master Volume
 //    x- and y-coordinates for the outputLevelKnob.
@@ -229,19 +248,57 @@ void JX11AudioProcessorEditor::resized()
                         knobWidth, labelHeight);
     polyModeButton.setBounds(polyLabel.getX(), polyLabel.getBottom() + spacing,
                              buttonWidth, buttonHeight);
+
+
     
 //    Presets
     int polyLabelX = polyLabel.getRight() - (3 * spacing) +
                      (2 * envReleaseKnob.getWidth());
     int polyLabelY = glideBendKnob.getBottom() + spacing;
-    presetLabel.setBounds(polyLabelX, polyLabelY, knobWidth, labelHeight);
-    presetSelector.setBounds(presetLabel.getX(), presetLabel.getBottom() + spacing, presetWidth, presetHeight);
     
+    presetLabel.setBounds(polyLabelX, polyLabelY, knobWidth, labelHeight);
+    presetSelector.setBounds(presetLabel.getX(), presetLabel.getBottom() + spacing,
+                             presetWidth, presetHeight);
 
-   
 }
 
-void JX11AudioProcessorEditor::buttonClicked(juce::Button* button) 
+//Helper Functions
+
+void JX11AudioProcessorEditor::setKnobBounds(RotaryKnob& knob, juce::Rectangle<int>& area, int knobWidth, int spacing)
+{
+        knob.setBounds(area.removeFromLeft(knobWidth).reduced(spacing));
+}
+
+void JX11AudioProcessorEditor::setSectionBounds(juce::Label& label, std::vector<RotaryKnob*>& knobs,
+                      juce::Rectangle<int>& bounds, int labelHeight,
+                      int knobWidth, int knobHeight, int spacing)
+{
+    
+    auto sectionArea = bounds.removeFromTop(knobHeight + labelHeight);
+    label.setBounds(sectionArea.removeFromTop(labelHeight));
+    
+    for (auto* knob : knobs) {
+        setKnobBounds(*knob, sectionArea, knobWidth, spacing);
+    }
+     
+    
+}
+
+void JX11AudioProcessorEditor::configureLabel(juce::Label& label,
+                    const juce::String& text,
+                    const juce::Justification& justification,
+                    float fontSize,
+                    juce::Font::FontStyleFlags fontStyle)
+{
+    label.setText(text, juce::dontSendNotification);
+    label.setJustificationType(justification);
+    label.setFont(juce::Font(fontSize, fontStyle));
+}
+
+
+//Listener Functions
+
+void JX11AudioProcessorEditor::buttonClicked(juce::Button* button)
 {
     if (button == &polyModeButton) {
 //        Toggle the mode and update the button text
