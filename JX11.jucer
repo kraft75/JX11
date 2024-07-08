@@ -6,6 +6,9 @@
               pluginManufacturer="feelinirie" pluginManufacturerCode="Irie"
               pluginCode="JX11" pluginVST3Category="External">
   <MAINGROUP id="AgAabA" name="JX11">
+    <GROUP id="{042E7E68-3094-FA66-4BF4-C4C71657BFD7}" name="Resources">
+      <FILE id="R5p3zP" name="Lato-Medium.ttf" compile="0" resource="1" file="../../Downloads/Lato-Medium.ttf"/>
+    </GROUP>
     <GROUP id="{745D32B0-3E93-50E7-2E42-35446CCC234B}" name="Source">
       <FILE id="fDXnXr" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

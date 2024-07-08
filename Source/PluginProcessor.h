@@ -59,6 +59,9 @@ class JX11AudioProcessor  : public juce::AudioProcessor,
                             private juce::ValueTree::Listener
 {
 public:
+//    Determing whether the plug-in is
+//    currently in learning mode or not.
+    std::atomic<bool> midiLearn;
     //==============================================================================
     JX11AudioProcessor();
     ~JX11AudioProcessor() override;
@@ -94,7 +97,16 @@ public:
     void changeProgramName (int index, const juce::String& newName) override;
 
     //==============================================================================
+//    This method is used to save the state of the audio processor
+//    (including all parameters) into a memory block
+//    (raw data, XML or ValueTree), which can be serialized
+//    to save presets or for plugin state persistence.
     void getStateInformation (juce::MemoryBlock& destData) override;
+    
+//    This method is used to restore the state of the audio processor
+//    (including all parameters) from a memory block.
+//    This is typically used when loading presets or restoring
+//    the plugin state.
     void setStateInformation (const void* data, int sizeInBytes) override;
     //==============================================================================
 //    AudioProcessorValueTreeState owns the parameters.
@@ -110,6 +122,11 @@ public:
 
 private:
     //==============================================================================
+//    Adding the MIDI CC number to the XML.
+//    A roundabout way because Juce doesn't guarantee
+//    that getStateInformation and setStateInformation
+//    will be called on any thread in particular.
+    std::atomic<uint8_t> midiLearnCC;
     
 //    Informs the audio thread (processBlock) about
 //    parameter changes, which are then calculated.

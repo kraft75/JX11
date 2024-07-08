@@ -73,6 +73,8 @@ JX11AudioProcessorEditor::JX11AudioProcessorEditor (JX11AudioProcessor& p)
     polyModeButton.setButtonText(isPolyMode ? "Mono" : "Poly");
     polyModeButton.setClickingTogglesState(true);
     polyModeButton.addListener(this);
+    midiLearnButton.setButtonText("Midi");
+    midiLearnButton.addListener(this);
     
 //      Add components to the contentComponent.
     contentComponent->addAndMakeVisible(oscMixKnob);
@@ -84,6 +86,7 @@ JX11AudioProcessorEditor::JX11AudioProcessorEditor (JX11AudioProcessor& p)
     contentComponent->addAndMakeVisible(filterLFOKnob);
     contentComponent->addAndMakeVisible(filterVelocityKnob);
     contentComponent->addAndMakeVisible(polyModeButton);
+    contentComponent->addAndMakeVisible(midiLearnButton);
     contentComponent->addAndMakeVisible(presetSelector);
     contentComponent->addAndMakeVisible(outputLevelKnob);
     contentComponent->addAndMakeVisible(filterAttackKnob);
@@ -111,6 +114,8 @@ JX11AudioProcessorEditor::JX11AudioProcessorEditor (JX11AudioProcessor& p)
                    juce::Justification::centredLeft, 15.0f, juce::Font::bold);
     configureLabel(polyLabel, "Polyphony",
                    juce::Justification::centredLeft, 15.0f, juce::Font::bold);
+    configureLabel(midiLabel, "MIDI learn",
+                   juce::Justification::centredLeft, 15.0f, juce::Font::bold);
     configureLabel(presetLabel, "Presets",
                    juce::Justification::centredTop, 15.0f, juce::Font::bold);
     configureLabel(fenvLabel, "Envelope Filter",
@@ -131,8 +136,8 @@ JX11AudioProcessorEditor::JX11AudioProcessorEditor (JX11AudioProcessor& p)
     contentComponent->addAndMakeVisible(modLabel);
     contentComponent->addAndMakeVisible(outLabel);
     contentComponent->addAndMakeVisible(fenvLabel);
-    contentComponent->addAndMakeVisible(polyModeButton);
     contentComponent->addAndMakeVisible(presetSelector);
+    contentComponent->addAndMakeVisible(midiLabel);
 
 //    Fetch preset names from audioProcessor as
 //    std::vector<std::string>
@@ -161,6 +166,8 @@ JX11AudioProcessorEditor::~JX11AudioProcessorEditor()
 {
     juce::LookAndFeel::setDefaultLookAndFeel(nullptr);
     polyModeButton.removeListener(this); 
+    midiLearnButton.removeListener(this);
+    audioProcessor.midiLearn = false;
 }
 
 //==============================================================================
@@ -249,8 +256,6 @@ void JX11AudioProcessorEditor::resized()
     polyModeButton.setBounds(polyLabel.getX(), polyLabel.getBottom() + spacing,
                              buttonWidth, buttonHeight);
 
-
-    
 //    Presets
     int polyLabelX = polyLabel.getRight() - (3 * spacing) +
                      (2 * envReleaseKnob.getWidth());
@@ -259,6 +264,11 @@ void JX11AudioProcessorEditor::resized()
     presetLabel.setBounds(polyLabelX, polyLabelY, knobWidth, labelHeight);
     presetSelector.setBounds(presetLabel.getX(), presetLabel.getBottom() + spacing,
                              presetWidth, presetHeight);
+    
+//    Midi learn
+    midiLabel.setBounds(vibratoKnob.getX(), vibratoKnob.getBottom() + spacing,
+                        knobWidth, labelHeight);
+    midiLearnButton.setBounds(midiLabel.getX(), midiLabel.getBottom() + spacing, buttonWidth, buttonHeight);
 
 }
 
@@ -309,6 +319,34 @@ void JX11AudioProcessorEditor::buttonClicked(juce::Button* button)
         } else {
                 polyModeButton.setButtonText("Poly");
         }
+    }
+    
+    if (button == &midiLearnButton) {
+//        If MIDI Learn button is pressed, it should be
+//        disabled until a MIDI CC code is received.
+//        So it can’t click it more than once.
+        button->setButtonText("Waiting...");
+        button->setEnabled(false);
+        audioProcessor.midiLearn = true;
+        
+//        The timer will start running and call
+//        the timerCallback function ten times
+//        per second. It happens on the JUCE
+//        message thread which enables a safe
+//        approach to any UI component.
+        startTimerHz(10);
+    }
+}
+
+void JX11AudioProcessorEditor::timerCallback()
+{
+//    If midiLearn is set back to false by the audio thread.
+    if (!audioProcessor.midiLearn) {
+//        It stops the timer...
+        stopTimer();
+//        ...and restores the button.
+        midiLearnButton.setButtonText("MIDI");
+        midiLearnButton.setEnabled(true);
     }
 }
 

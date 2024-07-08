@@ -10,6 +10,13 @@
 #include "PluginEditor.h"
 #include "Utils.h"
 
+//New name of the top-level XML element that contains separate child
+//elements for the <Parameter> section as well as the learned MIDI CC number.
+static const juce::Identifier pluginTag = "PLUGIN";
+static const juce::Identifier extraTag = "EXTRA";
+static const juce::Identifier midiCCAttribute = "midiCC";
+
+
 //==============================================================================
 JX11AudioProcessor::JX11AudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -282,10 +289,14 @@ void JX11AudioProcessor::reset()
 {
 //    Call synth reset() from main class
     synth.reset();
+    
 //    Informs the smoother about the initial settting of the
 //    output level.
     synth.outputLevelSmoother.setCurrentAndTargetValue(
             juce::Decibels::decibelsToGain(outputLevelParam->get()));
+    
+    midiLearn = false;
+    midiLearnCC = synth.resoCC;
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -324,6 +335,10 @@ void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
     
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+    
+//    We can access midiLearnCC variable from any
+//    thread, since it’s atomic.
+    synth.resoCC = midiLearnCC;
     
 //    Thread-safe check, whether parametersChanged is true.
     bool expected = true;
@@ -605,6 +620,17 @@ void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, j
 
 void JX11AudioProcessor::handleMIDI(uint8_t data0, uint8_t data1, uint8_t data2)
 {
+//    Checks if midiLearn is true and for
+//    command Control Change.
+    if (midiLearn && ((data0 & 0xF0) == 0xB0)) {
+        DBG("learned a MIDI CC");
+//        Using the CC number (in data1) from
+//        the message (data1).
+        midiLearnCC = data1;
+        midiLearn = false;
+        return;
+    }
+    
 //    Program Change
 //    Checks if the command is 0xC,
 //    which is Program Change.
@@ -660,30 +686,62 @@ juce::AudioProcessorEditor* JX11AudioProcessor::createEditor()
 //==============================================================================
 void JX11AudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
-    copyXmlToBinary(*apvts.copyState().createXml(), destData);
+//    Creates a new XML element with a tag name
+//    to store the state.
+    auto xml = std::make_unique<juce::XmlElement>(pluginTag);
     
-//    DBG(apvts.copyState().toXmlString());
+//    The current state of the parameters (stored in apvts) is copied
+//    and converted into an XML format.
+    std::unique_ptr<juce::XmlElement> parametersXML(apvts.copyState().createXml());
+//    The parameters XML is added as a child element
+//    to the main XML element.
+    xml->addChildElement(parametersXML.release());
+    
+//    Creates a new XML element with a tag name
+//    to store the MIDI CC Number.
+    auto extraXML = std::make_unique<juce::XmlElement>(extraTag);
+//    Gives it an attribute named midiCC with the value of the
+//    MIDI CC code that the user has learned (or the default 0x47).
+    extraXML->setAttribute(midiCCAttribute, midiLearnCC);
+    xml->addChildElement(extraXML.release());
+
+    
+//    The entire XML structure is converted into a
+//    binary format and stored in destData
+//    (a juce::MemoryBlock).
+    copyXmlToBinary(*xml, destData);
+    
+//    Outputs the XML as a string to the debug console.
+    DBG(xml->toString());
+    
 }
 
 void JX11AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
     
-//    Parse binary data into an xml document
+//    Parse binary data into an xml document.
+//    Converts the binary data back into an XML structure.
     std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
     
 //    Verifying that xml contains the parameter tag
-    if (xml.get() != nullptr && xml->hasTagName(apvts.state.getType())) {
-//     Updating the values of all parameters to the new values. Thread-safe.
-        apvts.replaceState(juce::ValueTree::fromXml(*xml));
+    if (xml.get() != nullptr && xml->hasTagName(pluginTag)) {
+//        Retrieves the child XML element that contains the parameters.
+        if (auto* parametersXML = xml->getChildByName(apvts.state.getType())) {
+//          Replaces the current parameter state with the state
+//            defined in the XML. This is done in a thread-safe manner.
+            apvts.replaceState(juce::ValueTree::fromXml(*parametersXML));
+//            Signal processBlock() to call update() again.
+//            Making sure the the values are up-to-date.
+            parametersChanged.store(true);
+        }
         
-//     Signal processBlock() to call update() again.
-//     Making sure the the values are up-to-date
-        parametersChanged.store(true);
+        if (auto* extraXML = xml->getChildByName(extraTag)) {
+//            This looks for the <EXTRA midiCC="..."/> element,
+//            reads the attribute..
+            int midiCC = extraXML->getIntAttribute(midiCCAttribute);
+//            ...and puts it into midiLearnCC.
+            midiLearnCC = static_cast<uint8_t>(midiCC);
+        }
     }
 }
 

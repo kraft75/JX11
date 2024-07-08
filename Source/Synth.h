@@ -159,6 +159,11 @@ public:
 //    Modulation intensity for the envelope.
     float filterEnvDepth;
     
+//    Checking for any MIDI CC number for the
+//    resonance modulation.
+//    Default: MIDI CC number of 0x47.
+    uint8_t resoCC = 0x47;
+    
 private:
     
 //    ------------------------------------------------------------------

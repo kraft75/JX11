@@ -13,14 +13,14 @@
 #include "RotaryKnob.h"
 #include "LookAndFeel.h"
 #include "Preset.h"
-#include "Scrollable.h"
 
 //==============================================================================
 /**
 */
 class JX11AudioProcessorEditor : public juce::AudioProcessorEditor,
                                  public juce::Button::Listener,
-                                 public juce::ComboBox::Listener
+                                 public juce::ComboBox::Listener,
+                                 public juce::Timer
 {
 public:
     JX11AudioProcessorEditor (JX11AudioProcessor&);
@@ -88,6 +88,11 @@ private:
     RotaryKnob octaveKnob;
     RotaryKnob tuningKnob;
 
+//    MIDI Learn button.
+//    If pressed, it will set midiLearn to true and the
+//    audio processor will start scanning for a MIDI CC event.
+    juce::TextButton midiLearnButton;
+    
 //    Toggle buttons between Poly and Mono mode
     juce::TextButton polyModeButton;
 //    Track the text mode.
@@ -113,6 +118,8 @@ private:
     
     juce::Rectangle<int> polyArea;
     juce::Label polyLabel;
+    
+    juce::Label midiLabel;
     
     juce::Label presetLabel;
 //    Attachment object between a parameter from the APVTS and a slider/button.
@@ -193,6 +200,10 @@ private:
 
     ButtonAttachment polyModeAttachment {audioProcessor.apvts, ParameterID::polyMode.getParamID(),
         polyModeButton};
+    
+//    The editor periodically checks
+//    whether midiLearn is still true.
+    void timerCallback() override;
     
 //    Helper functions.
     

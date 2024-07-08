@@ -12,11 +12,19 @@
 
 LookAndFeel::LookAndFeel() 
 {
+//    Using font from BinaryData
+//    It constructs a new juce::Typeface object from the pointer to the
+//    font data, and then makes it the standard font.
+    juce::Typeface::Ptr typeface = juce::Typeface::createSystemTypefaceFor(
+                    BinaryData::LatoMedium_ttf, BinaryData::LatoMedium_ttfSize);
+    setDefaultSansSerifTypeface(typeface);
+    
 //    Slider
     setColour(juce::ResizableWindow::backgroundColourId, juce::Colour(65, 70, 80));
     setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colour(0, 0, 0));
     setColour(juce::Slider::rotarySliderFillColourId, juce::Colours::orange);
     setColour(juce::Slider::thumbColourId, juce::Colours::orange);
+    
 //    Button
     setColour(juce::TextButton::buttonColourId, juce::Colour(15, 30, 45));
     setColour(juce::TextButton::buttonOnColourId, juce::Colours::orange);

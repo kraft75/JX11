@@ -559,7 +559,7 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
             modWheel = 0.000005f * float(data2 * data2);
             break;
         }
-//            Resonance
+         /*
         case 0x47: {
 //            Maps the position of the controller (0 – 127)
 //            to a linear curve between 1.0 and 5.7 which
@@ -567,7 +567,7 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
 //            Filter Reso parameter.
             resonanceCtl = 154.0f / float(154 - data2);
             break;
-        }
+        }*/
 //            Filter in positive direction.
 //            Turns cutoff higher.
         case 0x4A: {
@@ -592,6 +592,16 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
                 sustainPedalPressed = false;
             }
             break;
+    }
+    
+//    Resonance for MIDI Learn Mode
+    if (data1 == resoCC) {
+//        Maps the position of the controller (0 – 127)
+//        to a linear curve between 1.0 and 5.7 which
+//        add an extra boost to the value from the
+//        Filter Reso parameter.
+        resonanceCtl = 154.0f / float(154 - data2);
+
     }
     
 }
