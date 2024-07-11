@@ -48,6 +48,8 @@ private:
     JX11AudioProcessor& audioProcessor;
     
     juce::ComboBox presetSelector;
+    
+    juce::TooltipWindow tooltip;
 
 //    Creates a scrollable area for the component.
     juce::Viewport viewPort;

@@ -11,7 +11,8 @@
 
 //==============================================================================
 JX11AudioProcessorEditor::JX11AudioProcessorEditor (JX11AudioProcessor& p)
-: AudioProcessorEditor (&p), audioProcessor (p), contentComponent(new juce::Component()), isPolyMode(false)
+: AudioProcessorEditor (&p), audioProcessor (p),
+  tooltip(this), contentComponent(new juce::Component()), isPolyMode(false)
 {
 //    Enabling the look-and-feel class.
     juce::LookAndFeel::setDefaultLookAndFeel(&globalLNF);
@@ -69,6 +70,37 @@ JX11AudioProcessorEditor::JX11AudioProcessorEditor (JX11AudioProcessor& p)
     noiseKnob.setTextValueSuffix(" %");
     octaveKnob.setTextValueSuffix(" octave");
     tuningKnob.setTextValueSuffix(" cent");
+    
+//    Set tooltips for each knob.
+    outputLevelKnob.setTooltip("Adjust the output level in dB.");
+    filterResoKnob.setTooltip("Adjust the filter resonance in percentage.");
+    oscMixKnob.setTooltip("Mix the oscillator signals in percentage.");
+    oscTuneKnob.setTooltip("Tune the oscillator in semitones.");
+    oscFineKnob.setTooltip("Fine-tune the oscillator in cents.");
+    glideRateKnob.setTooltip("Adjust the glide rate in percentage.");
+    glideBendKnob.setTooltip("Adjust the glide bend in semitones.");
+    glideModeKnob.setTooltip("Select the glide mode.");
+    filterFreqKnob.setTooltip("Adjust the filter cutoff frequency in percentage.");
+    filterEnvKnob.setTooltip("Adjust the filter envelope in percentage.");
+    filterLFOKnob.setTooltip("Adjust the filter LFO in percentage.");
+    filterVelocityKnob.setTooltip("Adjust the filter velocity in percentage.");
+    filterAttackKnob.setTooltip("Adjust the filter attack time in percentage.");
+    filterDecayKnob.setTooltip("Adjust the filter decay time in percentage.");
+    filterSustainKnob.setTooltip("Adjust the filter sustain level in percentage.");
+    filterReleaseKnob.setTooltip("Adjust the filter release time in percentage.");
+    envAttackKnob.setTooltip("Adjust the envelope attack time in percentage.");
+    envDecayKnob.setTooltip("Adjust the envelope decay time in percentage.");
+    envSustainKnob.setTooltip("Adjust the envelope sustain level in percentage.");
+    envReleaseKnob.setTooltip("Adjust the envelope release time in percentage.");
+    lfoRateKnob.setTooltip("Adjust the LFO rate in Hz.");
+    vibratoKnob.setTooltip("Adjust the vibrato amount in percentage.");
+    noiseKnob.setTooltip("Adjust the noise level in percentage.");
+    octaveKnob.setTooltip("Select the oscillator octave.");
+    tuningKnob.setTooltip("Adjust the tuning in cents.");
+    polyModeButton.setTooltip("Toggle between mono and polyphonic modes.");
+    midiLearnButton.setTooltip("Enable MIDI Learn mode.");
+    presetSelector.setTooltip("Select predefinded programs.");
+
     
     polyModeButton.setButtonText(isPolyMode ? "Mono" : "Poly");
     polyModeButton.setClickingTogglesState(true);

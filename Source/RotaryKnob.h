@@ -30,6 +30,8 @@ public:
     
     void setTextValueSuffix(const juce::String& suffix);
     
+    void setTooltip(const juce::String& newTooltip);
+    
     juce::Slider slider;
 //    Drawn inside the bounds of the RotaryKnob by
 //    the paint method.

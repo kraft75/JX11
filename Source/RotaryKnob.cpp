@@ -70,8 +70,6 @@ void RotaryKnob::paint (juce::Graphics& g)
 
 void RotaryKnob::resized()
 {
-//    Set the bounds of any child components that your component contains.
-    
 //    Getting a juce::Rectangle object with the current width and
 //    height of the RotaryKnob component.
     auto bounds = getLocalBounds();
@@ -81,6 +79,9 @@ void RotaryKnob::resized()
 
 //    Set the slider's bounds with the label space at the top.
     slider.setBounds(sliderArea.reduced(5));
+}
 
-
+void RotaryKnob::setTooltip(const juce::String& newTooltip)
+{
+        slider.setTooltip(newTooltip);
 }
